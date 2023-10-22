@@ -190,3 +190,106 @@ BEGIN
   END IF;
 END |
 DELIMITER ;
+
+-- verif la disponibilité d'un artiste pour un concert
+DELIMITER |
+CREATE TRIGGER VerifierDisponibiliteArtistes
+BEFORE INSERT ON CONCERT
+FOR EACH ROW
+BEGIN
+  DECLARE nombreArtistes INT;
+  
+  SELECT COUNT(*) INTO nombreArtistes
+  FROM ARTISTE
+  WHERE id_Groupe = NEW.id_Groupe;
+  
+  IF nombreArtistes = 0 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Aucun artiste disponible pour ce groupe.';
+  END IF;
+END |
+DELIMITER ;
+-- mets a jour automatiquement la durée d'une activité 
+DELIMITER |
+
+CREATE TRIGGER MettreAJourDureeActivite
+AFTER INSERT ON PARTICIPER
+FOR EACH ROW
+BEGIN
+  DECLARE dureeTotale INT;
+  
+  SELECT SUM(duree_Activite) INTO dureeTotale
+  FROM PARTICIPER
+  JOIN ACTIVITE ON PARTICIPER.id_Activite = ACTIVITE.id_Activite
+  WHERE ACTIVITE.id_Activite = NEW.id_Activite;
+  
+  UPDATE ACTIVITE
+  SET duree_Activite = dureeTotale
+  WHERE id_Activite = NEW.id_Activite;
+END |
+DELIMITER ;
+
+-- permet d'empecher une suppresion d'un genre de musique si un groupe y est toujours associé
+DELIMITER |
+CREATE TRIGGER EmpecherSuppressionGenre
+BEFORE DELETE ON GENRE_MUSICAL
+FOR EACH ROW
+BEGIN
+  DECLARE nombreGenres INT;
+  
+  SELECT COUNT(*) INTO nombreGenres
+  FROM GROUPE
+  WHERE id_Genre = OLD.id_Genre;
+  
+  IF nombreGenres > 0 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Ce genre musical est encore utilisé par un ou plusieurs groupes.';
+  END IF;
+END |
+DELIMITER ;
+
+-- Verifie la capacité d'un lieu pour une activité
+DELIMITER |
+CREATE TRIGGER VerifierCapaciteLieux
+BEFORE INSERT ON ACTIVITE
+FOR EACH ROW
+BEGIN
+  DECLARE capaciteLieu INT;
+  
+  -- Récupérer la capacité du lieu associé à l'activité
+  SELECT capacite INTO capaciteLieu
+  FROM LIEUX
+  WHERE id_Lieux = NEW.id_Lieux;
+  
+  -- Vérifier si la capacité du lieu est suffisante pour l'activité
+  IF capaciteLieu < NEW.duree_Activite THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'La capacité du lieu n''est pas suffisante pour cette activité.';
+  END IF;
+END |
+DELIMITER ;
+
+-- Assure la liaison du billet avec les festival
+DELIMITER |
+CREATE TRIGGER VerifierBilletFestival
+BEFORE INSERT ON BILLET
+FOR EACH ROW
+BEGIN
+  DECLARE festivalExist INT;
+  
+  -- Vérifier si le festival associé au billet existe
+  SELECT COUNT(*) INTO festivalExist
+  FROM FESTIVAL
+  WHERE id_Festival = NEW.id_Festival;
+  
+  -- Vérifier si le festival existe
+  IF festivalExist = 0 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Le festival auquel ce billet donne accès n''existe pas.';
+  END IF;
+END |
+DELIMITER ;
+
+
+
+

@@ -1,5 +1,6 @@
 from .app import login_manager
 from .app import db
+from sqlalchemy import CheckConstraint
 
 class GenreMusical(db.Model):
     __tablename__ = 'Genre_Musical'
@@ -118,16 +119,35 @@ class Concert(db.Model):
     temps_montage = db.Column(db.Integer, nullable=False)
     temps_demontage = db.Column(db.Integer, nullable=False)
     id_lieu = db.Column(db.Integer, db.ForeignKey('Lieu.id_lieu'), nullable=False)
+    id_genre_musical = db.Column(db.Integer, db.ForeignKey('Genre_Musical.id_genre_musical'), nullable=False)
     
     lieu = db.relationship('Lieu', backref=db.backref('Lieu', lazy=True))
+    genre_musical = db.relationship('GenreMusical', backref=db.backref('Genre_Musical', lazy=True))
     
-    def __init__(self, nom, date_debut, duree, montage, demontage, id_lieu):
+    def __init__(self, nom, date_debut, duree, montage, demontage, id_lieu, id_genre_musical):
         self.nom_concert = nom
         self.date_debut_concert = date_debut
         self.duree_concert = duree
         self.temps_montage = montage
         self.temps_demontage = demontage
         self.id_lieu = id_lieu
+        self.id_genre_musical = id_genre_musical
+    
+    def __table_args__(self):
+        return(
+            CheckConstraint('temps_montage + temps_demontage < duree_concert'),
+            CheckConstraint('temps_montage > 0'),
+            CheckConstraint('temps_demontage > 0'),
+            CheckConstraint('duree_concert > 0'),
+        )
+        
+    def __table_args__(self):
+        return (
+            CheckConstraint('temps_montage + temps_demontage < duree_concert'),
+            CheckConstraint('temps_montage > 0'),
+            CheckConstraint('temps_demontage > 0'),
+            CheckConstraint('duree_concert > 0'),
+        )
 
 class StyleMusical(db.Model):
     __tablename__ = 'Style_Musical'
@@ -157,6 +177,13 @@ class Billet(db.Model):
         self.duree_validite_billet = duree
         self.id_spectateur = id_spectateur
         self.id_fest = id_fest
+    
+    def __table_args__(self):
+        return (
+            CheckConstraint('prix_billet > 0'),
+            CheckConstraint('duree_validite_billet > 0'),
+            CheckConstraint('duree_validite_billet <= Festival.duree_fest'),
+        )
     
 class Organise(db.Model):
     __tablename__ = 'Organise'

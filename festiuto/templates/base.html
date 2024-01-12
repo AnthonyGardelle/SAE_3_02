@@ -15,10 +15,16 @@
         <header>
             <nav>
                 <ul>
-                    <li><a>Home</a></li>
-                    <li><a>News</a></li>
-                    <li><a>Contact</a></li>
-                    <li><a>About</a></li>
+                    <li><a href="{{ url_for('home') }}">Accueil</a></li>
+                    <li><a>Billeterie</a></li>
+                    <li><a>Le festival</a></li>
+                    <li id="search">
+                        <form method="POST" action="{{ url_for('search') }}" class="form-inline " role="search">
+                            <input class="form-control form-control-sm mr-3" type="search" placeholder="Rechercher un artiste" aria-label="Rechercher" name="searched">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                        </form>
+                    </li>
+                    <li><a>Se connecter</a></li>
                 </ul>
             </nav>
         </header>

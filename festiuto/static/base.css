@@ -5,3 +5,20 @@ nav > ul {
     margin: 0;
     padding: 0;
 }
+
+nav {
+    background-color: #333;
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 2%;
+    border-radius: 20px;
+}
+
+nav > ul > li {
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+nav > ul > li > a {
+    color: white !important;
+}

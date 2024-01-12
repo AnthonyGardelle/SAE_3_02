@@ -13,7 +13,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 bootstrap = Bootstrap5(app)
 
 app.config['SECRET_KEY'] = 'e6bcbfcb-198e-4115-b554-2ebd2f747fc2'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost/orm'
 
 def mkpath(path):
     """Construit un chemin absolu à partir d'un chemin relatif."""
@@ -23,6 +22,6 @@ def mkpath(path):
         path))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-   'sqlite:///'+ mkpath('../CEB.db'))
+   'sqlite:///'+ mkpath('../FESTIUTO.db'))
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)

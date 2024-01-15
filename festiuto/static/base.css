@@ -1,6 +1,11 @@
 * {
     padding: 0;
     margin: 0;
+    list-style: none;
+}
+
+a, p {
+    color: white;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Istok+Web:wght@400;700&display=swap');
@@ -27,7 +32,6 @@ nav > ul > li {
 }
 
 nav > ul > li > a {
-    color: white !important;
     font-size: large;
 }
 
@@ -46,4 +50,18 @@ h1 {
     font-family: "Istok Web", sans-serif;
     letter-spacing: 0.3em;
     font-weight: bold;
+}
+
+footer > ul {
+    display: flex;
+    justify-content: space-around;
+}
+
+footer {
+    position: absolute;
+    background-color: #333;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    width: 100%;
+    bottom: 0;
 }

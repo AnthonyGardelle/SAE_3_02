@@ -4,11 +4,12 @@
         {% block head %}
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        {% block styles %}
-            {{ bootstrap.load_css() }}
-            <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
-        {% endblock %}
             <title>Festiut’O</title>
+            <link rel="icon" href="{{ url_for('static', filename = 'images/logo.png')}}"/>
+            {% block styles %}
+                {{ bootstrap.load_css() }}
+                    <link rel="stylesheet" href="{{ url_for('static', filename = 'base.css') }}">
+            {% endblock %}
         {% endblock %}
     </head>
     <body>
@@ -18,15 +19,15 @@
             <nav>
                 <ul>
                     <li><a href="{{ url_for('home') }}">Accueil</a></li>
-                    <li><a>Billeterie</a></li>
-                    <li><a>Le festival</a></li>
+                    <li><a href="{{ url_for('home') }}">Billeterie</a></li>
+                    <li><a href="{{ url_for('home') }}">Le festival</a></li>
                     <li id="search">
                         <form method="POST" action="{{ url_for('search') }}" class="form-inline " role="search">
                             <input class="form-control form-control-sm mr-3" type="search" placeholder="Rechercher un artiste" aria-label="Rechercher" name="searched">
                             <i class="fas fa-search" aria-hidden="true"></i>
                         </form>
                     </li>
-                    <li><a>Se connecter</a></li>
+                    <li><a href="{{ url_for('home') }}">Se connecter</a></li>
                 </ul>
             </nav>
         </header>
@@ -35,6 +36,14 @@
             {% endblock %}
         </main>
         <footer>
+            <ul>
+                <li><a href="">Contactez Nous</a></li>
+                <li><a href="">Acceuil</a></li>
+                <li><a href="">Billeterie</a></li>
+                <li><a href="">Festival</a></li>
+                <li><a href="">Se connecter</a></li>
+                <li><p>IUT d'Orléans | Nathan PIGOREAU, Anthony GARDELLE</p></li>
+            </ul>
         </footer>
         {% block scripts %}
             {{ bootstrap.load_js() }}

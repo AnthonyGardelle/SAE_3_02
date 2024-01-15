@@ -51,6 +51,26 @@ def loaddb(dirname):
                             id_fest = row['id_fest']
                             id_lieu = row['id_lieu']
                             print(ajouter_festival_lieu(id_fest, id_lieu))
+                elif nom_table == "genre_musical" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:
+                            nom_genre_musical = row['nom_genre_musical']
+                            print(ajouter_genre_musical(nom_genre_musical))
+                elif nom_table == "groupe" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:
+                            nom_groupe = row["nom_groupe"]
+                            id_genre_musical = row["id_genre_musical"]
+                            print(ajouter_groupe(nom_groupe, id_genre_musical))
+                elif nom_table == "favoris" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:
+                            id_utilisateur = row["id_utilisateur"]
+                            id_groupe = row["id_groupe"]
+                            print(ajouter_favoris(id_utilisateur, id_groupe))
                 else:
                     print(f"Erreur : table {nom_table} non reconnue.")
             except Exception as e:

@@ -235,10 +235,10 @@ class SeProduire(db.Model):
 class FestivalLieu(db.Model):
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), primary_key=True)
     id_lieu = db.Column(db.Integer, db.ForeignKey('Lieu.id_lieu'), primary_key=True)
-    
+
     festival = db.relationship('Festival', backref=db.backref('Festival', lazy=True))
     lieu = db.relationship('Lieu', backref=db.backref('festival_lieu_relation', lazy=True))
-    
+
     def __init__(self, id_fest, id_lieu):
         self.id_fest = id_fest
         self.id_lieu = id_lieu
@@ -249,9 +249,9 @@ class ReseauxSociaux(db.Model):
     nom_reseaux_sociaux = db.Column(db.String(50), nullable=False)
     url_reseaux_sociaux = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('reseau_groupe_relation', lazy=True))
-    
+
     def __init__(self, nom, url, id_group):
         self.nom_reseaux_sociaux = nom
         self.url_reseaux_sociaux = url
@@ -262,9 +262,9 @@ class Photos(db.Model):
     id_photos = db.Column(db.Integer, primary_key=True)
     url_photos = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('photos_groupe_relation', lazy=True))
-    
+
     def __init__(self, url, id_group):
         self.url_photos = url
         self.id_group = id_group
@@ -274,12 +274,25 @@ class Videos(db.Model):
     id_videos = db.Column(db.Integer, primary_key=True)
     url_videos = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('videos_groupe_relation', lazy=True))
-    
+
     def __init__(self, url, id_group):
         self.url_videos = url
         self.id_group = id_group
+
+class Favoris(db.Model):
+    __tablename__ = 'Favoris'
+    id_favoris = db.Column(db.Integer, primary_key=True)
+    id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
+    id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), nullable=False)
+
+    groupe = db.relationship('Groupe', backref=db.backref('favoris_groupe_relation', lazy=True))
+    spectateur = db.relationship('Spectateur', backref=db.backref('favoris_spectateur_relation', lazy=True))
+
+    def __init__(self, id_group, id_spectateur):
+        self.id_group = id_group
+        self.id_spectateur = id_spectateur
         
 def ajouter_festival(id_fest, nom, date_debut, duree):
     if not nom:
@@ -334,6 +347,55 @@ def ajouter_festival_lieu(id_fest, id_lieu):
         db.session.add(festival_lieu)
         db.session.commit()
         return f"Le festival {id_fest} a bien été ajouté au lieu {id_lieu}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_genre_musical(nom_genre_musical):
+    if not nom_genre_musical:
+        return "Le nom du genre musical ne peut pas être vide"
+    try :
+        genre_musical = GenreMusical(nom_genre_musical)
+        db.session.add(genre_musical)
+        db.session.commit()
+        return f"Le genre musical {nom_genre_musical} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_groupe(nom_groupe, id_genre_musical) :
+    if not nom_groupe:
+        return "Le nom du groupe ne peut pas être vide"
+    if not id_genre_musical:
+        return "L'id du genre musical ne peut pas être vide"
+    try :
+        groupe = Groupe(nom_groupe, id_genre_musical)
+        db.session.add(groupe)
+        db.session.commit()
+        return f"Le groupe {nom_groupe} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_favoris(id_group, id_spectateur) :
+    if not id_group:
+        return "L'id du groupe ne peut pas être vide"
+    if not id_spectateur:
+        return "L'id du spectateur ne peut pas être vide"
+    try :
+        favoris = Favoris(id_group, id_spectateur)
+        db.session.add(favoris)
+        db.session.commit()
+        return f"Le groupe {id_group} a bien été ajouté aux favoris du spectateur {id_spectateur}"
     except IntegrityError as e:
         db.session.rollback()
         return "Erreur : " + str(e)

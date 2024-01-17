@@ -2,6 +2,7 @@
 from flask import render_template
 from .app import app
 from .form import SearchForm
+from .models import *
 
 @app.route('/')
 def home() :
@@ -29,3 +30,9 @@ def search() :
         searched = content_searched,
         title = "Search Page",
     )
+    
+@app.route("/billeterie")
+def billeterie():
+    type_billet = get_types_billets()
+    print(type_billet)
+    return render_template("billeterie.html", types_billet = type_billet)

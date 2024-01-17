@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{url_for('static', filename='billeterie.css')}}">
+{% endblock %}
+{% block content %}
+    {% for type_billet in types_billet %}
+        <div class="type_billet">
+            <h2>{{ type_billet.nom }}</h2>
+            <div class="underline"></div>
+            <ul>
+                <li><p>{{ type_billet.duree }}{% if type_billet.duree > 1 %} Jours{%else%} Jour{%endif%}</p></li>
+                <li><p>€ {{ type_billet.prix }}</p></li>
+                <li><p>{{ type_billet.quantite_dispo - type_billet.quantite_reservee }} places restantes</p></li>
+                <div class="boutons">
+                    <div class="bouton" onclick="showPopup('popup_voir_offre_')">Voir les offres</div>
+                    {% include 'popup_voir_offre.html' %}
+                </div>
+            </ul>
+        </div>
+    {% endfor %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+{% endblock %}

@@ -38,8 +38,6 @@ class Festival(db.Model):
     date_debut_fest = db.Column(db.Date, nullable=False)
     duree_fest = db.Column(db.Integer, nullable=False)
     
-    billets = db.relationship('Billet', backref='festival', lazy=True)
-    
     def __init__(self, id_fest, nom, date_debut, duree):
         self.id_fest = id_fest
         self.nom_fest = nom
@@ -160,26 +158,49 @@ class StyleMusical(db.Model):
 class Billet(db.Model):
     __tablename__ = 'Billet'
     id_billet = db.Column(db.Integer, primary_key=True)
-    prix_billet = db.Column(db.Float, nullable=False)
-    duree_validite_billet = db.Column(db.Integer, nullable=False)
-    quantite_disponible = db.Column(db.Integer, nullable=False)
     id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), nullable=False)
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), nullable=False)
+    nom_type_billet = db.Column(db.String(50), db.ForeignKey('Type_Billet.nom_type_billet'), nullable=False)
+    quantite_reservee_billet = db.Column(db.Integer, nullable=False)
 
-    spectateur = db.relationship('Spectateur', backref=db.backref('Spectateur', lazy=True))
+    spectateur = db.relationship('Spectateur', backref='billets', lazy=True)
+    festival = db.relationship('Festival', backref='billets', lazy=True)
 
     __table_args__ = (
-        CheckConstraint('prix_billet > 0'),
-        CheckConstraint('duree_validite_billet > 0'),
-        CheckConstraint('quantite_disponible > 0'),
+        CheckConstraint('id_spectateur > 0'),
+        CheckConstraint('id_fest > 0'),
     )
 
-    def __init__(self, prix, duree_validite, quantite, id_spectateur, id_festival):
-        self.prix_billet = prix
-        self.duree_validite_billet = duree_validite
-        self.quantite_disponible = quantite
-        self.id_spectateur = id_spectateur
-        self.id_fest = id_festival
+    def __init__(self, spectateur, festival, type_billet, quantite_reservee):
+        self.spectateur = spectateur
+        self.festival = festival
+        self.type_billet = type_billet
+        self.quantite_reservee_billet = quantite_reservee
+        
+class TypeBillet(db.Model):
+    __tablename__ = 'Type_Billet'
+    nom_type_billet = db.Column(db.String(50), primary_key=True)
+    duree_validite_type_billet = db.Column(db.Integer, nullable=False)
+    prix_type_billet = db.Column(db.Float, nullable=False)
+    quantite_initiale_disponible_type_billet = db.Column(db.Integer, nullable=False)
+    quantite_reservee_type_billet = db.Column(db.Integer, default=0, nullable=False)
+
+    billets = db.relationship('Billet', backref='type_billet', lazy=True)
+
+    def __init__(self, nom, duree_validite, prix, quantite_initiale_disponible):
+        self.nom_type_billet = nom
+        self.duree_validite_type_billet = duree_validite
+        self.prix_type_billet = prix
+        self.quantite_initiale_disponible_type_billet = quantite_initiale_disponible
+        
+    def to_dict(self):
+        return {
+            'nom': self.nom_type_billet,
+            'duree': self.duree_validite_type_billet,
+            'prix': self.prix_type_billet,
+            'quantite_dispo': self.quantite_initiale_disponible_type_billet,
+            'quantite_reservee': self.quantite_reservee_type_billet,
+        }
     
 class Organise(db.Model):
     __tablename__ = 'Organise'
@@ -340,8 +361,34 @@ def ajouter_festival_lieu(id_fest, id_lieu):
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+    
+def get_types_billets():
+    types_billets = []
+    for type_billet in TypeBillet.query.all():
+        types_billets.append(type_billet.to_dict())
+    return types_billets
+
+def ajouter_type_billet(nom, duree_validite, prix, quantite_initiale_disponible):
+    if not nom:
+        return "Le nom du type de billet ne peut pas être vide"
+    if not duree_validite:
+        return "La durée de validité du type de billet ne peut pas être vide"
+    if not prix:
+        return "Le prix du type de billet ne peut pas être vide"
+    if not quantite_initiale_disponible:
+        return "La quantité initiale disponible du type de billet ne peut pas être vide"
+    try :
+        type_billet = TypeBillet(nom, duree_validite, prix, quantite_initiale_disponible)
+        db.session.add(type_billet)
+        db.session.commit()
+        return f"Le type de billet {nom} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
 
 @login_manager.user_loader
 def load_user() :
     return 1
-

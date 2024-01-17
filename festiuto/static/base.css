@@ -64,4 +64,11 @@ footer {
     padding-bottom: 2%;
     width: 100%;
     bottom: 0;
+    height: 10%;
+}
+
+body {
+    background-image: url(../static/images/fond.png);
+    background-repeat: no-repeat;
+    background-size: cover;
 }

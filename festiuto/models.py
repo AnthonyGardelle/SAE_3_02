@@ -2,6 +2,8 @@ from .app import db, login_manager
 from sqlalchemy import CheckConstraint
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from flask_login import UserMixin
+from hashlib import sha256
 
 class GenreMusical(db.Model):
     __tablename__ = 'Genre_Musical'
@@ -46,16 +48,21 @@ class Festival(db.Model):
         self.date_debut_fest = date_debut
         self.duree_fest = duree
         
-class Spectateur(db.Model):
+class Spectateur(db.Model, UserMixin) :
     __tablename__ = 'Spectateur'
     id_spectateur = db.Column(db.Integer, primary_key=True)
     nom_spectateur = db.Column(db.String(50), nullable=False)
     prenom_spectateur = db.Column(db.String(50), nullable=False)
-    
-    def __init__(self, nom, prenom):
+    mot_de_passe_spectateur = db.Column(db.String(64), nullable=False)
+
+    def __init__(self, nom, prenom, mot_de_passe):
         self.nom_spectateur = nom
         self.prenom_spectateur = prenom
-        
+        self.mot_de_passe_spectateur = mot_de_passe
+
+    def get_id(self):
+        return self.id_spectateur
+
 class Hebergement(db.Model):
     __tablename__ = 'Hebergement'
     id_hebergement = db.Column(db.Integer, primary_key=True)
@@ -97,6 +104,9 @@ class Groupe(db.Model):
     def __init__(self, nom, id_genre_musical):
         self.nom_groupe = nom
         self.id_genre_musical = id_genre_musical
+
+    def get_photo(self):
+        return Photos.query.filter_by(id_group=self.id_groupe).first()
         
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
@@ -293,7 +303,10 @@ class Favoris(db.Model):
     def __init__(self, id_group, id_spectateur):
         self.id_group = id_group
         self.id_spectateur = id_spectateur
-        
+
+    def get_group(self):
+        return Groupe.query.get(int(self.id_group))
+
 def ajouter_festival(id_fest, nom, date_debut, duree):
     if not nom:
         return "Le nom du festival ne peut pas être vide"
@@ -402,8 +415,52 @@ def ajouter_favoris(id_group, id_spectateur) :
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+    
+def ajouter_spectateur(nom_spectateur, prenom_spectateur, mot_de_passe_spectateur) :
+    if not nom_spectateur:
+        return "Le nom du spectateur ne peut pas être vide"
+    if not prenom_spectateur:
+        return "Le prénom du spectateur ne peut pas être vide"
+    if not mot_de_passe_spectateur:
+        return "Le mot de passe du spectateur ne peut pas être vide"
+    try :
+        m = sha256()
+        m.update(mot_de_passe_spectateur.encode('utf-8'))
+        spectateur = Spectateur(nom_spectateur, prenom_spectateur, m.hexdigest())
+        db.session.add(spectateur)
+        db.session.commit()
+        return f"Le spectateur {nom_spectateur} {prenom_spectateur} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_photos(url_photos, id_group) :
+    if not url_photos:
+        return "L'url de la photo ne peut pas être vide"
+    if not id_group:
+        return "L'id du groupe ne peut pas être vide"
+    try :
+        photos = Photos(url_photos, id_group)
+        db.session.add(photos)
+        db.session.commit()
+        return f"La photo {url_photos} a bien été ajoutée au groupe {id_group}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def get_favoris_by_spec(id_spectateur) :
+    return Favoris.query.filter_by(id_spectateur=id_spectateur).all()
+
+def get_random_groupes() :
+    return Groupe.query.order_by(db.func.random()).limit(10).distinct().all()
 
 @login_manager.user_loader
-def load_user() :
-    return 1
+def load_user(id_spectateur) :
+    return Spectateur.query.get(int(id_spectateur))
 

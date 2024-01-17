@@ -1,0 +1,77 @@
+* {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+body {
+    background-image: url(../images/fond.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+a, p {
+    color: white;
+}
+
+nav > ul {
+    display: flex;
+    list-style-type: none;
+    justify-content: space-around;
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    background-color: #333;
+    border-radius: 20px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: 5%;
+}
+
+nav > ul > li {
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+nav > ul > li > a {
+    font-size: large;
+}
+
+header {
+    margin-top: 2%;
+    margin-left: 2%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1, h2, h3, h4, h5,  p {
+    font-family: "Istok Web", sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+    color: white;
+    font-weight: bold;
+    letter-spacing: 0.3em;
+}
+
+h1 {
+    margin-left: 3%;
+    flex-grow: 1;
+}
+
+footer > ul {
+    display: flex;
+    justify-content: space-around;
+}
+
+footer {
+    position: absolute;
+    background-color: #333;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    width: 100%;
+    bottom: 0;
+}

@@ -60,7 +60,6 @@ class Spectateur(db.Model, UserMixin) :
     nom_spectateur = db.Column(db.String(50), nullable=False)
     prenom_spectateur = db.Column(db.String(50), nullable=False)
     mot_de_passe_spectateur = db.Column(db.String(64), nullable=False)
-    
 
     def __init__(self, nom, prenom, mot_de_passe):
         self.nom_spectateur = nom
@@ -77,6 +76,36 @@ class Spectateur(db.Model, UserMixin) :
 
     def get_id(self):
         return self.id_spectateur
+    
+    def ajouter_favoris(self, id_group) :
+        if not id_group:
+            return "L'id du groupe ne peut pas être vide"
+        try :
+            favoris = Favoris(id_group, self.id_spectateur)
+            db.session.add(favoris)
+            db.session.commit()
+            return f"Le groupe {id_group} a bien été ajouté aux favoris du spectateur {self.id_spectateur}"
+        except IntegrityError as e:
+            db.session.rollback()
+            return "Erreur : " + str(e)
+        except Exception as e:
+            db.session.rollback()
+            return "Erreur : " + str(e)
+        
+    def enlever_favoris(self, id_group) :
+        if not id_group:
+            return "L'id du groupe ne peut pas être vide"
+        try :
+            favoris = Favoris.query.filter_by(id_group=id_group, id_spectateur=self.id_spectateur).first()
+            db.session.delete(favoris)
+            db.session.commit()
+            return f"Le groupe {id_group} a bien été enlevé des favoris du spectateur {self.id_spectateur}"
+        except IntegrityError as e:
+            db.session.rollback()
+            return "Erreur : " + str(e)
+        except Exception as e:
+            db.session.rollback()
+            return "Erreur : " + str(e)
 
 class Hebergement(db.Model):
     __tablename__ = 'Hebergement'
@@ -122,7 +151,19 @@ class Groupe(db.Model):
 
     def get_photo(self):
         return Photos.query.filter_by(id_group=self.id_groupe).first()
-        
+
+    def get_genre(self):
+        return GenreMusical.query.filter_by(id_genre_musical=self.id_genre_musical).first()
+
+    def get_membres(self) :
+        return Artiste.query.filter_by(id_groupe=self.id_groupe).all()
+    
+    def get_reseaux(self) :
+        return ReseauxSociaux.query.filter_by(id_group=self.id_groupe).all()
+    
+    def est_favoris(self, id_spectateur) :
+        return Favoris.query.filter_by(id_group=self.id_groupe, id_spectateur=id_spectateur).first() is not None
+
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
     id_artiste = db.Column(db.Integer, primary_key=True)
@@ -579,11 +620,54 @@ def ajouter_photos(url_photos, id_group) :
         db.session.rollback()
         return "Erreur : " + str(e)
 
+def ajouter_artiste(nom_artiste, prenom_artiste, instrument_artiste, id_groupe) :
+    if not nom_artiste:
+        return "Le nom de l'artiste ne peut pas être vide"
+    if not prenom_artiste:
+        return "Le prénom de l'artiste ne peut pas être vide"
+    if not instrument_artiste:
+        return "L'instrument de l'artiste ne peut pas être vide"
+    if not id_groupe:
+        return "L'id du groupe ne peut pas être vide"
+    try :
+        artiste = Artiste(nom_artiste, prenom_artiste, instrument_artiste, id_groupe)
+        db.session.add(artiste)
+        db.session.commit()
+        return f"L'artiste {nom_artiste} {prenom_artiste} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_reseaux_sociaux(nom_reseaux_sociaux, url_reseaux_sociaux, id_group) :
+    if not nom_reseaux_sociaux:
+        return "Le nom du réseau social ne peut pas être vide"
+    if not url_reseaux_sociaux:
+        return "L'url du réseau social ne peut pas être vide"
+    if not id_group:
+        return "L'id du groupe ne peut pas être vide"
+    try :
+        reseaux_sociaux = ReseauxSociaux(nom_reseaux_sociaux, url_reseaux_sociaux, id_group)
+        db.session.add(reseaux_sociaux)
+        db.session.commit()
+        return f"Le réseau social {nom_reseaux_sociaux} a bien été ajouté au groupe {id_group}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
 def get_favoris_by_spec(id_spectateur) :
     return Favoris.query.filter_by(id_spectateur=id_spectateur).all()
 
 def get_random_groupes() :
     return Groupe.query.order_by(db.func.random()).limit(10).distinct().all()
+
+def get_group(id_group) :
+    return Groupe.query.filter_by(id_groupe=id_group).first()
 
 @login_manager.user_loader
 def load_user(id_spectateur) :

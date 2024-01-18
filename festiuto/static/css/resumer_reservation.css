@@ -1,0 +1,23 @@
+.resume {
+    margin-top: 10%;
+    background-color: #333;
+    padding: 5%;
+    border-radius: 30px;
+}
+
+.resume h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 10%;
+}
+
+main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+form {
+    background-color: #333;
+    color: white;
+}

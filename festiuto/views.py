@@ -1,11 +1,29 @@
-from flask import flash, redirect, render_template, request, url_for
 from .app import app
-from .form import SearchForm
 from .models import *
+from flask import render_template, redirect, url_for, request
+from flask_login import login_user, current_user, logout_user
+from .form import SearchForm, LoginForm
 
 @app.route('/')
-def home():
-    return render_template('home.html')
+def home() :
+    """Fonction de la vue de la page d'accueil.
+
+    Returns:
+        flask.reponse: Réponse de la page d'accueil.
+    """
+    if current_user.is_authenticated :
+        favoris = get_favoris_by_spec(current_user.id_spectateur)
+        random = False
+    else :
+        favoris = get_random_groupes()
+        random = True
+    print(favoris)
+    print(random)
+    return render_template (
+        "home.html",
+        favoris = favoris,
+        random = random
+    )
 
 @app.route("/search", methods=("POST",))
 def search():
@@ -47,3 +65,61 @@ def resume_reservation():
 
     billet = get_billet(id_spect, 1, ind_type_billet, date_debut).to_dict()
     return render_template("resume_reservation.html", billet=billet, spectateur=spectateur)
+
+@app.route("/login/", methods = ("GET", "POST"))
+def login() :
+    """Fonction de la vue de la page de connexion.
+
+    Returns:
+        flask.reponse: Réponse de la page de connexion.
+    """
+    form = LoginForm()
+    if form.validate_on_submit() :
+        user = form.get_authenticated_user()
+        if user :
+            login_user(user)
+            return redirect(url_for("home"))
+    return render_template (
+        "login.html",
+        form=form,
+    )
+
+@app.route("/group/<int:id_group>", methods = ("GET",))
+def groupe(id_group) :
+    """Fonction de la vue de la page d'un groupe.
+
+    Args:
+        id_group (int): Identifiant du groupe.
+
+    Returns:
+        flask.reponse: Réponse de la page du groupe.
+    """
+    return render_template (
+        "groupe.html",
+        id_group = id_group,
+    )
+
+@app.route("/profil/<int:id_spectateur>", methods = ("GET",))
+def profil(id_spectateur) :
+    """Fonction de la vue de la page d'un profil.
+
+    Args:
+        id_spectateur (int): Identifiant du spectateur.
+
+    Returns:
+        flask.reponse: Réponse de la page du profil.
+    """
+    return render_template (
+        "profil.html",
+        id_spectateur = id_spectateur,
+    )
+
+@app.route("/deconnexion/", methods = ("GET",))
+def deconnexion() :
+    """Fonction de la vue de la page de déconnexion.
+
+    Returns:
+        flask.reponse: Réponse de la page de déconnexion.
+    """
+    logout_user()
+    return redirect(url_for("home"))

@@ -4,11 +4,15 @@
     list-style: none;
 }
 
+body {
+    background-image: url(../images/fond.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
 a, p {
     color: white;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Istok+Web:wght@400;700&display=swap');
 
 nav > ul {
     display: flex;
@@ -43,13 +47,19 @@ header {
     align-items: center;
 }
 
-h1 {
+h1, h2, h3, h4, h5,  p {
+    font-family: "Istok Web", sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
     color: white;
+    font-weight: bold;
+    letter-spacing: 0.3em;
+}
+
+h1 {
     margin-left: 3%;
     flex-grow: 1;
-    font-family: "Istok Web", sans-serif;
-    letter-spacing: 0.3em;
-    font-weight: bold;
 }
 
 footer > ul {

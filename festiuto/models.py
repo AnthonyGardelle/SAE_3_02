@@ -182,6 +182,12 @@ class Groupe(db.Model):
     
     def est_favoris(self, id_spectateur) :
         return Favoris.query.filter_by(id_group=self.id_groupe, id_spectateur=id_spectateur).first() is not None
+    
+    def get_nb_membres(self) :
+        return len(self.get_membres())
+    
+    def get_concerts(self) :
+        return SeProduire.query.filter_by(id_groupe=self.id_groupe).all()
 
 class Artiste(db.Model):
     __tablename__ = 'Artiste'

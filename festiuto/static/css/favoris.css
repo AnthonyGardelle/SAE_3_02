@@ -1,0 +1,20 @@
+#lesgroupes {
+    margin-top: 2%;
+    margin-left: 2%;
+    background-color: #333;
+    margin-right: 4%;
+    border-radius: 30px;
+    margin-bottom: 2%;
+    padding: 2%;
+}
+
+.groupe {
+    display: flex;
+    margin-bottom: 2%;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+h4 {
+    height: min-content;
+}

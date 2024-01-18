@@ -27,6 +27,9 @@
         </ul>
         {% if taille > 1 %}
         <h4 id="titre_reseaux">Les suivres :</h4>
+        {% else %}
+        <h4 id="titre_reseaux">Le/La suivre :</h4>
+        {% endif %}
         <ul id="reseaux">
             {% if current_user.is_authenticated %}
             {% if not groupe.est_favoris(current_user.id_spectateur) %}
@@ -41,8 +44,5 @@
                 {% endwith %}
             {% endfor %}
         </ul>
-        {% else %}
-        <h4 id="titre_reseaux">Le/La suivre :</h4>
-        {% endif %}
     </section>
 {% endblock %}

@@ -14,7 +14,11 @@
         </section>
     </article>
     <div id="carousel-container">
-        <h3>Les Artistes du festival</h3>
+        {% if random %}
+            <h2>Quelque groupe du festival</h2>
+        {% else %}
+            <h2>Vos groupes favoris</h2>
+        {% endif %}
         <div id="carousel">
             <p>{{ random }}</p>
             {% if random %}

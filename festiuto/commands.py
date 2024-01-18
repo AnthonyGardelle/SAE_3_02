@@ -36,14 +36,14 @@ def loaddb(dirname):
                     with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile, delimiter=';')
                         for row in reader:
-                            nom = row['nom']
-                            adresse = row['adresse']
-                            code_postale = row['code_postale']
-                            ville = row['ville']
-                            pays = row['pays']
-                            capacite = row['capacite']
-                            type_lieu = row['type']
-                            print(ajouter_lieu(nom, adresse, ville, code_postale, pays, capacite, type_lieu))
+                            nom_lieu = row['nom_lieu']
+                            adresse_lieu = row['adresse_lieu']
+                            ville_lieu = row['ville_lieu']
+                            code_postal_lieu = row['code_postal_lieu']
+                            pays_lieu = row['pays_lieu']
+                            capacite_lieu = row['capacite_lieu']
+                            type_lieu = row['type_lieu']
+                            print(ajouter_lieu(nom_lieu, adresse_lieu, ville_lieu, code_postal_lieu, pays_lieu, capacite_lieu, type_lieu))
                 elif nom_table == "festival_lieu":
                     with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile, delimiter=';')

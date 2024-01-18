@@ -11,7 +11,7 @@ def home() :
     Returns:
         flask.reponse: Réponse de la page d'accueil.
     """
-    if current_user.is_authenticated :
+    if current_user.is_authenticated and len(get_favoris_by_spec(current_user.id_spectateur)) > 0 :
         favoris = get_favoris_by_spec(current_user.id_spectateur)
         random = False
     else :

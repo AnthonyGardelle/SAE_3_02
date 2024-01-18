@@ -20,7 +20,6 @@
             <h2>Vos groupes favoris</h2>
         {% endif %}
         <div id="carousel">
-            <p>{{ random }}</p>
             {% if random %}
                 {% for favori in favoris %}
                     {% with photo = favori.get_photo().url_photos %}
@@ -42,6 +41,17 @@
                     {% endwith %}
                 {% endfor %}
             {% endif %}
+        </div>
+        <div id="carousel-container2">
+            <div id="carousel2">
+                {% for favori in favoris %}
+                    {% if random %}
+                        <div class="carousel-item2"><p>{{ favori.nom_groupe }}</p></div>
+                    {% else %}
+                        <div class="carousel-item2"><p>{{ favori.get_group().nom_groupe }}</p></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
         <div id="lesboutons">
             <button id="prev-btn" class="carousel-btn" onclick="prevSlide()">&#10094;</button>

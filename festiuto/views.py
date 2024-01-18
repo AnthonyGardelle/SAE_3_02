@@ -102,9 +102,12 @@ def groupe(id_group) :
     Returns:
         flask.reponse: Réponse de la page du groupe.
     """
+    groupe = get_group(id_group)
+    taille = len(groupe.get_membres())
     return render_template (
         "groupe.html",
-        id_group = id_group,
+        groupe = groupe,
+        taille = taille
     )
 
 @app.route("/profil/<int:id_spectateur>", methods = ("GET",))
@@ -131,3 +134,36 @@ def deconnexion() :
     """
     logout_user()
     return redirect(url_for("home"))
+
+@app.route("/suivre/<int:id_group>", methods = ("GET",))
+def suivre(id_group) :
+    """Fonction de la vue de la page de suivi d'un groupe.
+
+    Args:
+        id_group (int): Identifiant du groupe.
+
+    Returns:
+        flask.reponse: Réponse de la page de suivi d'un groupe.
+    """
+    if current_user.is_authenticated :
+        current_user.ajouter_favoris(id_group)
+        return redirect(url_for("groupe", id_group=id_group))
+    else :
+        return redirect(url_for("login"))
+    
+@app.route("/unsuivre/<int:id_group>", methods = ("GET",))
+def unsuivre(id_group) :
+    """Fonction de la vue de la page de désuivi d'un groupe.
+
+    Args:
+        id_group (int): Identifiant du groupe.
+
+    Returns:
+        flask.reponse: Réponse de la page de désuivi d'un groupe.
+    """
+    if current_user.is_authenticated :
+        current_user.enlever_favoris(id_group)
+        print("unsuivre")
+        return redirect(url_for("groupe", id_group=id_group))
+    else :
+        return redirect(url_for("login"))

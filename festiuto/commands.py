@@ -20,7 +20,7 @@ def loaddb(dirname):
         if os.path.isdir(chemin_fichier):
             chemin_dossier = chemin_fichier
         if os.path.isfile(chemin_fichier) and nom_fichier.endswith('.csv'):
-            print(f"Traitement du fichier CSV {nom_fichier} :")
+            print("\033[92m" + f"Traitement du fichier CSV {nom_fichier} :" + "\033[0m")
             nom_table = os.path.splitext(nom_fichier)[0]
             try:
                 if nom_table == "festival":
@@ -116,8 +116,25 @@ def loaddb(dirname):
                             id_lieu = row["id_lieu"]
                             id_genre_musical = row["id_genre_musical"]
                             print(ajouter_concert(nom_concert, date_concert, heure_debut_concert, duree_concert, temps_montage, temps_demontage, id_lieu, id_genre_musical))
+                elif nom_table == "artiste" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:  
+                            nom_artiste = row["nom_artiste"]
+                            prenom_artiste = row["prenom_artiste"]
+                            instrument_artiste = row["instrument_artiste"]
+                            id_groupe = row["id_groupe"]
+                            print(ajouter_artiste(nom_artiste, prenom_artiste, instrument_artiste, id_groupe))
+                elif nom_table == "reseaux_sociaux" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:
+                            nom_reseaux_sociaux = row["nom_reseaux_sociaux"]
+                            url_reseaux_sociaux = row["url_reseaux_sociaux"]
+                            id_group = row["id_group"]
+                            print(ajouter_reseaux_sociaux(nom_reseaux_sociaux, url_reseaux_sociaux, id_group))
                 else:
-                    print(f"Erreur : table {nom_table} non reconnue.")
+                    print("\033[91m" + f"Erreur : table {nom_table} non reconnue." + "\033[0m")
             except Exception as e:
                 print(f"Erreur : {e}")
                 db.session.rollback()

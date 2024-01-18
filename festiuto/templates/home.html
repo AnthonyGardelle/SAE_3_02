@@ -17,7 +17,7 @@
         {% if random %}
             <h2>Quelque groupe du festival</h2>
         {% else %}
-            <h2>Vos groupes favoris</h2>
+            <h2><a href="{{ url_for('favoris', id_spectateur = current_user.id_spectateur ) }}">Vos groupes favoris</a></h2>
         {% endif %}
         <div id="carousel">
             {% if random %}

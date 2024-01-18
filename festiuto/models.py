@@ -107,7 +107,7 @@ class Activite(db.Model):
         self.statut = statut
         self.date_debut_activite = date_debut
         self.duree_activite = duree
-        
+
 class Groupe(db.Model):
     __tablename__ = 'Groupe'
     id_groupe = db.Column(db.Integer, primary_key=True)
@@ -578,7 +578,7 @@ def ajouter_photos(url_photos, id_group) :
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
-    
+
 def get_favoris_by_spec(id_spectateur) :
     return Favoris.query.filter_by(id_spectateur=id_spectateur).all()
 

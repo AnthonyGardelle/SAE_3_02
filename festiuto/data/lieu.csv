@@ -1,3 +1,7 @@
-nom;adresse;ville;code_postale;pays;capacite;type
-Lieu A;Adresse A;Ville A;12345;Pays A;1000;Salle de concert
-Lieu B;Adresse B;Ville B;67890;Pays B;1500;Scene exterieure
+nom_lieu;adresse_lieu;ville_lieu;code_postal_lieu;pays_lieu;capacite_lieu;type_lieu
+Salle de Concert d'Orléans;12 Rue de la Musique;Orléans;"45000";France;1000;Salle de concert
+Parc des Arts d'Orléans;28 Avenue des Arts;Orléans;"45100";France;1500;Scène extérieure
+Centre Polyvalent d'Orléans;5 Rue Polyvalente;Orléans;"45200";France;800;Salle polyvalente
+Amphithéâtre d'Orléans;15 Boulevard de l'Amphithéâtre;Orléans;"45300";France;2000;Amphithéâtre
+Théâtre d'Orléans;8 Rue du Théâtre;Orléans;"45400";France;1200;Salle de théâtre
+Studio d'enregistrement d'Orléans;1 Rue du Studio;Orléans;"45500";France;5;Studio d'enregistrement

@@ -30,3 +30,8 @@ function validateForm(typeBilletId) {
 
     return true; // Autoriser l'envoi du formulaire
 }
+
+function redirectLogin(){
+    console.log("redirect")
+    window.location.href = 'login/';
+}

@@ -467,6 +467,9 @@ def get_duree_fest():
 def get_spectateur(nom, prebom):
     return Spectateur.query.filter_by(nom_spectateur=nom, prenom_spectateur=prebom).first()
 
+def get_spect_by_id(id_spect):
+    return Spectateur.query.filter_by(id_spectateur = id_spect).first()
+
 def add_spectateur(nom, prenom):
     try :
         spectateur = Spectateur(nom, prenom)

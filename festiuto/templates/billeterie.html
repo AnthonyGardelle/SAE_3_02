@@ -14,7 +14,11 @@
                 <li><p>{{ type_billet.duree }}{% if type_billet.duree > 1 %} Jours{%else%} Jour{%endif%}</p></li>
                 <li><p>€ {{ type_billet.prix }}</p></li>
                 <li><p>{{ type_billet.quantite_dispo - type_billet.quantite_reservee }} places restantes</p></li>
-                <div class="bouton" onclick="togglePopup({{type_billet.id}})">Réserver</div>
+                {% if not current_user.is_authenticated %}
+                <div class="bouton" onclick="redirectLogin()">Se connecter</div>
+                {%else%}
+                    <div class="bouton" onclick="togglePopup({{type_billet.id}})">Réserver</div>
+                {%endif%}
             </ul>
         </div>
         <div id="popup-overlay-{{type_billet.id}}">
@@ -24,11 +28,11 @@
                 <form action="{{ url_for('resume_reservation')}}" method="POST" onsubmit="return validateForm('{{type_billet.id}}')">
                     <p>
                         <label for="nom">Nom : </label>
-                        <input type="text" name="nom" id="{{type_billet.id}}_nom">
+                        <input type="text" name="nom" id="{{type_billet.id}}_nom" value="{{current_user.nom_spectateur}}">
                     </p>
                     <p>
                         <label for="prenom">Prénom : </label>
-                        <input type="text" name="prenom" id="{{type_billet.id}}_prenom">
+                        <input type="text" name="prenom" id="{{type_billet.id}}_prenom" value="{{current_user.prenom_spectateur}}">
                     </p>
                     <p>
                         <label for="mail">Adresse Mail : </label>

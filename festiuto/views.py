@@ -49,22 +49,17 @@ def resume_reservation():
     mail = data["mail"]
     date_debut = data["date_debut"]
 
-    spect = get_spectateur(nom, prenom)
-    if spect is None:
-        print(add_spectateur(nom, prenom))
-        spect = get_spectateur(nom, prenom)
-    spectateur = spect.to_dict()
-    id_spect = spectateur["id"]
+    spect = get_spect_by_id(current_user.id_spectateur)
 
-    billet_ajoute = add_billet(id_spect, 1, ind_type_billet, date_debut)
+    billet_ajoute = add_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut)
 
     if not billet_ajoute:
         error_message = "Erreur : Ce billet existe déjà"    
         print("Erreur : Ce billet existe déjà")
         return render_template("resume_reservation.html", error_message=error_message, redirect_url="/billeterie")
 
-    billet = get_billet(id_spect, 1, ind_type_billet, date_debut).to_dict()
-    return render_template("resume_reservation.html", billet=billet, spectateur=spectateur)
+    billet = get_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut).to_dict()
+    return render_template("resume_reservation.html", billet=billet, spectateur=spect)
 
 @app.route("/login/", methods = ("GET", "POST"))
 def login() :

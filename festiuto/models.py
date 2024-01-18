@@ -1,7 +1,7 @@
 from .app import db, login_manager
 from sqlalchemy import CheckConstraint
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class GenreMusical(db.Model):
     __tablename__ = 'Genre_Musical'
@@ -44,6 +44,14 @@ class Festival(db.Model):
         self.date_debut_fest = date_debut
         self.duree_fest = duree
         
+    def to_dict(self):
+        return {
+            'id': self.id_fest,
+            'nom': self.nom_fest,
+            'date_debut': self.date_debut_fest,
+            'duree': self.duree_fest,
+        }
+        
 class Spectateur(db.Model):
     __tablename__ = 'Spectateur'
     id_spectateur = db.Column(db.Integer, primary_key=True)
@@ -53,6 +61,13 @@ class Spectateur(db.Model):
     def __init__(self, nom, prenom):
         self.nom_spectateur = nom
         self.prenom_spectateur = prenom
+    
+    def to_dict(self):
+        return {
+            'id': self.id_spectateur,
+            'nom': self.nom_spectateur,
+            'prenom': self.prenom_spectateur,
+        }
         
 class Hebergement(db.Model):
     __tablename__ = 'Hebergement'
@@ -157,11 +172,11 @@ class StyleMusical(db.Model):
         
 class Billet(db.Model):
     __tablename__ = 'Billet'
-    id_billet = db.Column(db.Integer, primary_key=True)
+    id_billet = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), nullable=False)
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), nullable=False)
-    nom_type_billet = db.Column(db.String(50), db.ForeignKey('Type_Billet.nom_type_billet'), nullable=False)
-    quantite_reservee_billet = db.Column(db.Integer, nullable=False)
+    id_type_billet = db.Column(db.String(50), db.ForeignKey('Type_Billet.id_type_billet'), nullable=False)
+    date_debut = db.Column(db.Date, nullable=False)
 
     spectateur = db.relationship('Spectateur', backref='billets', lazy=True)
     festival = db.relationship('Festival', backref='billets', lazy=True)
@@ -171,19 +186,30 @@ class Billet(db.Model):
         CheckConstraint('id_fest > 0'),
     )
 
-    def __init__(self, spectateur, festival, type_billet, quantite_reservee):
-        self.spectateur = spectateur
-        self.festival = festival
-        self.type_billet = type_billet
-        self.quantite_reservee_billet = quantite_reservee
+    def __init__(self, id_spectateur, id_festival, id_type_billet, date_debut):
+        self.id_spectateur = id_spectateur
+        self.id_fest = id_festival
+        self.id_type_billet = id_type_billet
+        self.date_debut = date_debut
+        
+    def to_dict(self):
+        return {
+            'id': self.id_billet,
+            'id_spectateur': self.id_spectateur,
+            'id_festival': self.id_fest,
+            'id_type_billet': self.id_type_billet,
+            'festival': self.festival.to_dict() if self.festival else None,
+            'spectateur': self.spectateur.to_dict() if self.spectateur else None,
+            'date_debut': self.date_debut,
+        }
         
 class TypeBillet(db.Model):
     __tablename__ = 'Type_Billet'
-    nom_type_billet = db.Column(db.String(50), primary_key=True)
+    id_type_billet = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nom_type_billet = db.Column(db.String(50))
     duree_validite_type_billet = db.Column(db.Integer, nullable=False)
     prix_type_billet = db.Column(db.Float, nullable=False)
     quantite_initiale_disponible_type_billet = db.Column(db.Integer, nullable=False)
-    quantite_reservee_type_billet = db.Column(db.Integer, default=0, nullable=False)
 
     billets = db.relationship('Billet', backref='type_billet', lazy=True)
 
@@ -195,11 +221,12 @@ class TypeBillet(db.Model):
         
     def to_dict(self):
         return {
+            'id': self.id_type_billet,
             'nom': self.nom_type_billet,
             'duree': self.duree_validite_type_billet,
             'prix': self.prix_type_billet,
             'quantite_dispo': self.quantite_initiale_disponible_type_billet,
-            'quantite_reservee': self.quantite_reservee_type_billet,
+            'quantite_reservee': len(self.billets) if self.billets else 0,
         }
     
 class Organise(db.Model):
@@ -388,6 +415,53 @@ def ajouter_type_billet(nom, duree_validite, prix, quantite_initiale_disponible)
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+
+def get_jours_festival():
+    jours_festival = []
+    debut = Festival.query.first().date_debut_fest
+    duree = Festival.query.first().duree_fest
+    for i in range(duree):
+        jours_festival.append(debut + timedelta(days=i))
+    return jours_festival
+
+def get_duree_fest():
+    return Festival.query.first().duree_fest
+
+def get_spectateur(nom, prebom):
+    return Spectateur.query.filter_by(nom_spectateur=nom, prenom_spectateur=prebom).first()
+
+def add_spectateur(nom, prenom):
+    try :
+        spectateur = Spectateur(nom, prenom)
+        db.session.add(spectateur)
+        db.session.commit()
+        return f"Le spectateur {nom} {prenom} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
+def add_billet(id_spect, id_festival, id_type_billet, date_debut):
+    try :
+        date_debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+        billet_existant = get_billet(id_spect, id_festival, id_type_billet, date_debut)
+        if billet_existant:
+            return False
+        billet = Billet(id_spect, id_festival, id_type_billet, date_debut)
+        db.session.add(billet)
+        db.session.commit()
+        return True
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
+def get_billet(id_spect, id_festival, id_type_billet, date_debut):
+    return Billet.query.filter_by(id_spectateur=id_spect, id_fest=id_festival, id_type_billet=id_type_billet, date_debut=date_debut).first()
+
+def get_activites():
+    activites = []
+    for activite in Activite.query.all():
+        activites.append(activite)
+    return activites
 
 @login_manager.user_loader
 def load_user() :

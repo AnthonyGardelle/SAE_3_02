@@ -33,6 +33,13 @@ main {
     margin-bottom: 2%;
 }
 
+.underline-popup{
+    border-bottom: 2px solid #ccc;
+    width: 100%;
+    margin-top: 2%;
+    margin-bottom: 10%;
+}
+
 .type_billet > ul {
     display: flex;
     flex-direction: column;
@@ -65,20 +72,104 @@ main {
     text-align: center;
 }
 
-.boutons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.bouton {
     margin-top: 30%;
     margin-bottom: 2%;
-    background-color: white;
     justify-self: flex-end;
     border-radius: 10px;
     width: 100%;
     height: 5vh;
+    color: black;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease-in-out;
+    background-color: #777;
 }
 
-.bouton{
+.bouton:hover{
     color: black;
-} 
+    background-color: white;
+}
+
+[id^="popup-overlay-"] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 98;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    display: none;
+}
+
+[id^="popup-overlay-"].open{
+    display: flex !important;
+}
+
+.popup-content{
+    max-width: 500px;
+    width: 100%;
+    padding: 30px;
+    height: 70%;
+    border-radius: 50px;
+    box-sizing: border-box;
+    background-color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-content > h2{
+    font-size: 2.5em;
+    font-family: "Inter", sans-serif;
+    font-weight: bolder;
+    margin-bottom: 5%;
+    color: white;
+}
+
+.bouton-annuler {
+    position: absolute;
+    color: black;
+    background-color: red;
+    padding: 20px;
+    width: 108px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
+    left: 700px;
+    top: 599px;
+}
+
+.bouton-annuler:hover {
+    background-color: white;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form > p {
+    margin-bottom: 50px;
+}
+
+.bouton-reserver {
+    color: black;
+    background-color: green;
+    padding: 20px;
+    width: 108px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
+    align-self: flex-end;
+    justify-self: flex-end;
+    margin-top: 50px:
+}
+
+.bouton-reserver:hover {
+    background-color: white;
+}

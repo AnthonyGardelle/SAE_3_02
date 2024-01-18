@@ -2,6 +2,8 @@ from .app import db, login_manager
 from sqlalchemy import CheckConstraint
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from flask_login import UserMixin
+from hashlib import sha256
 
 class GenreMusical(db.Model):
     __tablename__ = 'Genre_Musical'
@@ -46,16 +48,21 @@ class Festival(db.Model):
         self.date_debut_fest = date_debut
         self.duree_fest = duree
         
-class Spectateur(db.Model):
+class Spectateur(db.Model, UserMixin) :
     __tablename__ = 'Spectateur'
     id_spectateur = db.Column(db.Integer, primary_key=True)
     nom_spectateur = db.Column(db.String(50), nullable=False)
     prenom_spectateur = db.Column(db.String(50), nullable=False)
-    
-    def __init__(self, nom, prenom):
+    mot_de_passe_spectateur = db.Column(db.String(64), nullable=False)
+
+    def __init__(self, nom, prenom, mot_de_passe):
         self.nom_spectateur = nom
         self.prenom_spectateur = prenom
-        
+        self.mot_de_passe_spectateur = mot_de_passe
+
+    def get_id(self):
+        return self.id_spectateur
+
 class Hebergement(db.Model):
     __tablename__ = 'Hebergement'
     id_hebergement = db.Column(db.Integer, primary_key=True)
@@ -97,6 +104,9 @@ class Groupe(db.Model):
     def __init__(self, nom, id_genre_musical):
         self.nom_groupe = nom
         self.id_genre_musical = id_genre_musical
+
+    def get_photo(self):
+        return Photos.query.filter_by(id_group=self.id_groupe).first()
         
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
@@ -235,10 +245,10 @@ class SeProduire(db.Model):
 class FestivalLieu(db.Model):
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), primary_key=True)
     id_lieu = db.Column(db.Integer, db.ForeignKey('Lieu.id_lieu'), primary_key=True)
-    
+
     festival = db.relationship('Festival', backref=db.backref('Festival', lazy=True))
     lieu = db.relationship('Lieu', backref=db.backref('festival_lieu_relation', lazy=True))
-    
+
     def __init__(self, id_fest, id_lieu):
         self.id_fest = id_fest
         self.id_lieu = id_lieu
@@ -249,9 +259,9 @@ class ReseauxSociaux(db.Model):
     nom_reseaux_sociaux = db.Column(db.String(50), nullable=False)
     url_reseaux_sociaux = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('reseau_groupe_relation', lazy=True))
-    
+
     def __init__(self, nom, url, id_group):
         self.nom_reseaux_sociaux = nom
         self.url_reseaux_sociaux = url
@@ -262,9 +272,9 @@ class Photos(db.Model):
     id_photos = db.Column(db.Integer, primary_key=True)
     url_photos = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('photos_groupe_relation', lazy=True))
-    
+
     def __init__(self, url, id_group):
         self.url_photos = url
         self.id_group = id_group
@@ -274,13 +284,29 @@ class Videos(db.Model):
     id_videos = db.Column(db.Integer, primary_key=True)
     url_videos = db.Column(db.String(50), nullable=False)
     id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
-    
+
     groupe = db.relationship('Groupe', backref=db.backref('videos_groupe_relation', lazy=True))
-    
+
     def __init__(self, url, id_group):
         self.url_videos = url
         self.id_group = id_group
-        
+
+class Favoris(db.Model):
+    __tablename__ = 'Favoris'
+    id_favoris = db.Column(db.Integer, primary_key=True)
+    id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), nullable=False)
+    id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), nullable=False)
+
+    groupe = db.relationship('Groupe', backref=db.backref('favoris_groupe_relation', lazy=True))
+    spectateur = db.relationship('Spectateur', backref=db.backref('favoris_spectateur_relation', lazy=True))
+
+    def __init__(self, id_group, id_spectateur):
+        self.id_group = id_group
+        self.id_spectateur = id_spectateur
+
+    def get_group(self):
+        return Groupe.query.get(int(self.id_group))
+
 def ajouter_festival(id_fest, nom, date_debut, duree):
     if not nom:
         return "Le nom du festival ne peut pas être vide"
@@ -340,8 +366,101 @@ def ajouter_festival_lieu(id_fest, id_lieu):
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+    
+def ajouter_genre_musical(nom_genre_musical):
+    if not nom_genre_musical:
+        return "Le nom du genre musical ne peut pas être vide"
+    try :
+        genre_musical = GenreMusical(nom_genre_musical)
+        db.session.add(genre_musical)
+        db.session.commit()
+        return f"Le genre musical {nom_genre_musical} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_groupe(nom_groupe, id_genre_musical) :
+    if not nom_groupe:
+        return "Le nom du groupe ne peut pas être vide"
+    if not id_genre_musical:
+        return "L'id du genre musical ne peut pas être vide"
+    try :
+        groupe = Groupe(nom_groupe, id_genre_musical)
+        db.session.add(groupe)
+        db.session.commit()
+        return f"Le groupe {nom_groupe} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_favoris(id_group, id_spectateur) :
+    if not id_group:
+        return "L'id du groupe ne peut pas être vide"
+    if not id_spectateur:
+        return "L'id du spectateur ne peut pas être vide"
+    try :
+        favoris = Favoris(id_group, id_spectateur)
+        db.session.add(favoris)
+        db.session.commit()
+        return f"Le groupe {id_group} a bien été ajouté aux favoris du spectateur {id_spectateur}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_spectateur(nom_spectateur, prenom_spectateur, mot_de_passe_spectateur) :
+    if not nom_spectateur:
+        return "Le nom du spectateur ne peut pas être vide"
+    if not prenom_spectateur:
+        return "Le prénom du spectateur ne peut pas être vide"
+    if not mot_de_passe_spectateur:
+        return "Le mot de passe du spectateur ne peut pas être vide"
+    try :
+        m = sha256()
+        m.update(mot_de_passe_spectateur.encode('utf-8'))
+        spectateur = Spectateur(nom_spectateur, prenom_spectateur, m.hexdigest())
+        db.session.add(spectateur)
+        db.session.commit()
+        return f"Le spectateur {nom_spectateur} {prenom_spectateur} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_photos(url_photos, id_group) :
+    if not url_photos:
+        return "L'url de la photo ne peut pas être vide"
+    if not id_group:
+        return "L'id du groupe ne peut pas être vide"
+    try :
+        photos = Photos(url_photos, id_group)
+        db.session.add(photos)
+        db.session.commit()
+        return f"La photo {url_photos} a bien été ajoutée au groupe {id_group}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def get_favoris_by_spec(id_spectateur) :
+    return Favoris.query.filter_by(id_spectateur=id_spectateur).all()
+
+def get_random_groupes() :
+    return Groupe.query.order_by(db.func.random()).limit(10).distinct().all()
 
 @login_manager.user_loader
-def load_user() :
-    return 1
+def load_user(id_spectateur) :
+    return Spectateur.query.get(int(id_spectateur))
 

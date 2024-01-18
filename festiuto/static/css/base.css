@@ -68,7 +68,6 @@ footer > ul {
 }
 
 footer {
-    position: absolute;
     background-color: #333;
     padding-top: 2%;
     padding-bottom: 2%;
@@ -76,7 +75,6 @@ footer {
     bottom: 0;
     height: 3%;
 }
-
 body {
     background-image: url(../images/fond.png);
     background-repeat: no-repeat;

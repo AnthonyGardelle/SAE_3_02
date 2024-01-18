@@ -96,6 +96,26 @@ def loaddb(dirname):
                             url_photo = row["url_photo"]
                             id_group = row["id_group"]
                             print(ajouter_photos(url_photo, id_group))
+                elif nom_table == "se_produire" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:  
+                            id_group = row["id_group"]
+                            id_concert = row["id_concert"]
+                            print(ajouter_se_produire(id_group, id_concert))
+                elif nom_table == "lzconcert":
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:  
+                            nom_concert = row["nom_concert"]
+                            date_concert = row["date_concert"]
+                            heure_debut_concert = row["heure_debut_concert"]
+                            duree_concert = row["duree_concert"]
+                            temps_montage = row["temps_montage"]
+                            temps_demontage = row["temps_demontage"]
+                            id_lieu = row["id_lieu"]
+                            id_genre_musical = row["id_genre_musical"]
+                            print(ajouter_concert(nom_concert, date_concert, heure_debut_concert, duree_concert, temps_montage, temps_demontage, id_lieu, id_genre_musical))
                 else:
                     print(f"Erreur : table {nom_table} non reconnue.")
             except Exception as e:

@@ -12,6 +12,12 @@ class GenreMusical(db.Model):
     
     def __init__(self, nom):
         self.nom_genre_musical = nom
+        
+    def to_dict(self):
+        return {
+            'id': self.id_genre_musical,
+            'nom': self.nom_genre_musical,
+        }
     
 class Lieu(db.Model):
     __tablename__ = 'Lieu'
@@ -32,6 +38,18 @@ class Lieu(db.Model):
         self.pays_lieu = pays
         self.capacite_lieu = capacite
         self.type_lieu = type_lieu
+    
+    def to_dict(self):
+        return {
+            'id': self.id_lieu,
+            'nom': self.nom_lieu,
+            'adresse': self.adresse_lieu,
+            'ville': self.ville_lieu,
+            'code_postal': self.code_postal_lieu,
+            'pays': self.pays_lieu,
+            'capacite': self.capacite_lieu,
+            'type': self.type_lieu,
+        }
 
 class Festival(db.Model):
     __tablename__ = 'Festival'
@@ -52,6 +70,7 @@ class Festival(db.Model):
             'nom': self.nom_fest,
             'date_debut': self.date_debut_fest,
             'duree': self.duree_fest,
+            'concerts': [concert.to_dict() for concert in Concert.query.all()],
         }
 
 class Spectateur(db.Model, UserMixin) :
@@ -141,12 +160,13 @@ class Artiste(db.Model):
         
 class Concert(db.Model):
     __tablename__ = 'Concert'
-    id_concert = db.Column(db.Integer, primary_key=True)
+    id_concert = db.Column(db.Integer, primary_key=True, autoincrement = True)
     nom_concert = db.Column(db.String(50), nullable=False)
-    date_debut_concert = db.Column(db.Date, nullable=False)
-    duree_concert = db.Column(db.Integer, nullable=False)
-    temps_montage = db.Column(db.Integer, nullable=False)
-    temps_demontage = db.Column(db.Integer, nullable=False)
+    date_concert = db.Column(db.Date, nullable=False)
+    heure_debut_concert = db.Column(db.Time, nullable=False)
+    duree_concert = db.Column(db.Time, nullable=False)
+    temps_montage = db.Column(db.Time, nullable=False)
+    temps_demontage = db.Column(db.Time, nullable=False)
     id_lieu = db.Column(db.Integer, db.ForeignKey('Lieu.id_lieu'), nullable=False)
     id_genre_musical = db.Column(db.Integer, db.ForeignKey('Genre_Musical.id_genre_musical'), nullable=False)
 
@@ -160,14 +180,28 @@ class Concert(db.Model):
         CheckConstraint('duree_concert > 0'),
     )
 
-    def __init__(self, nom, date_debut, duree, montage, demontage, id_lieu, id_genre_musical):
+    def __init__(self, nom, date,heure_debut, duree, montage, demontage, id_lieu, id_genre_musical):
         self.nom_concert = nom
-        self.date_debut_concert = date_debut
+        self.date_concert = date
+        self.heure_debut_concert = heure_debut
         self.duree_concert = duree
         self.temps_montage = montage
         self.temps_demontage = demontage
         self.id_lieu = id_lieu
         self.id_genre_musical = id_genre_musical
+    
+    def to_dict(self):
+        return {
+            'id': self.id_concert,
+            'nom': self.nom_concert,
+            'date': self.date_concert,
+            'heure_debut': self.heure_debut_concert,
+            'duree': self.duree_concert,
+            'montage': self.temps_montage,
+            'demontage': self.temps_demontage,
+            'lieu': self.lieu.to_dict() if self.lieu else None,
+            'genre': self.genre_musical.to_dict() if self.genre_musical else None,
+        }
 
 
 class StyleMusical(db.Model):
@@ -210,9 +244,11 @@ class Billet(db.Model):
             'id_spectateur': self.id_spectateur,
             'id_festival': self.id_fest,
             'id_type_billet': self.id_type_billet,
+            'nom_type_billet': TypeBillet.query.get(self.id_type_billet).nom_type_billet,
             'festival': self.festival.to_dict() if self.festival else None,
             'spectateur': self.spectateur.to_dict() if self.spectateur else None,
             'date_debut': self.date_debut,
+            'date_fin': (self.date_debut + timedelta(days=TypeBillet.query.get(self.id_type_billet).duree_validite_type_billet - 1)) if self.date_debut else None,
         }
         
 class TypeBillet(db.Model):
@@ -353,9 +389,21 @@ class Favoris(db.Model):
     def __init__(self, id_group, id_spectateur):
         self.id_group = id_group
         self.id_spectateur = id_spectateur
-
+    
     def get_group(self):
-        return Groupe.query.get(int(self.id_group))
+        return Groupe.query.get(int(self.id_group))        
+    
+class Assiste(db.Model):
+    __tablename__ = 'Assiste'
+    id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), primary_key=True)
+    id_concert = db.Column(db.Integer, db.ForeignKey('Concert.id_concert'), primary_key=True)
+    
+    spectateur = db.relationship('Spectateur', backref=db.backref('Assiste', lazy=True))
+    concert = db.relationship('Concert', backref=db.backref('Assiste', lazy=True))
+    
+    def __init__(self, id_spectateur, id_concert):
+        self.id_spectateur = id_spectateur
+        self.id_concert = id_concert
 
 def ajouter_festival(id_fest, nom, date_debut, duree):
     if not nom:
@@ -584,6 +632,67 @@ def get_favoris_by_spec(id_spectateur) :
 
 def get_random_groupes() :
     return Groupe.query.order_by(db.func.random()).limit(10).distinct().all()
+
+def ajouter_se_produire(id_groupe, id_concert):
+    if not id_groupe:
+        return "L'id du groupe ne peut pas être vide"
+    if not id_concert:
+        return "L'id du concert ne peut pas être vide"
+    try :
+        se_produire = SeProduire(id_groupe, id_concert)
+        db.session.add(se_produire)
+        db.session.commit()
+        return f"Le groupe {id_groupe} a bien été ajouté au concert {id_concert}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_concert(nom_concert, date_concert, heure_debut_concert, duree_concert, temps_montage, temps_demontage, id_lieu, id_genre_musical):
+    if not nom_concert:
+        return "Le nom du concert ne peut pas être vide"
+    if not date_concert:
+        return "La date du concert ne peut pas être vide"
+    if not heure_debut_concert:
+        return "L'heure du concert ne peut pas être vide"
+    if not duree_concert:
+        return "La durée du concert ne peut pas être vide"
+    if not temps_montage:
+        return "Le temps de montage du concert ne peut pas être vide"
+    if not temps_demontage:
+        return "Le temps de démontage du concert ne peut pas être vide"
+    if not id_lieu:
+        return "L'id du lieu ne peut pas être vide"
+    if not id_genre_musical:
+        return "L'id du genre musical ne peut pas être vide"
+    try :
+        date_concert = datetime.strptime(date_concert, '%Y-%m-%d').date()
+        heure_debut_concert = datetime.strptime(heure_debut_concert, '%H:%M').time()
+        duree_concert = datetime.strptime(duree_concert, '%H:%M').time()
+        temps_montage = datetime.strptime(temps_montage, '%H:%M').time()
+        temps_demontage = datetime.strptime(temps_demontage, '%H:%M').time()
+        concert = Concert(nom_concert, date_concert, heure_debut_concert, duree_concert, temps_montage, temps_demontage, id_lieu, id_genre_musical)
+        db.session.add(concert)
+        db.session.commit()
+        return f"Le concert {nom_concert} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
+def assiste(id_spect, id_concert):
+    try :
+        assiste = Assiste(id_spect, id_concert)
+        db.session.add(assiste)
+        db.session.commit()
+        return f"Le spectateur {id_spect} assistera au concert {id_concert}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
 
 @login_manager.user_loader
 def load_user(id_spectateur) :

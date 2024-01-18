@@ -50,6 +50,7 @@ def resume_reservation():
     date_debut = data["date_debut"]
 
     spect = get_spect_by_id(current_user.id_spectateur)
+    spectateur = spect.to_dict()
 
     billet_ajoute = add_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut)
 
@@ -59,7 +60,19 @@ def resume_reservation():
         return render_template("resume_reservation.html", error_message=error_message, redirect_url="/billeterie")
 
     billet = get_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut).to_dict()
-    return render_template("resume_reservation.html", billet=billet, spectateur=spect)
+    return render_template("resume_reservation.html", billet=billet, spectateur=spectateur)
+
+@app.route("/process_inscription", methods=["POST"])
+def process_inscription():
+    data = request.form
+    print(data)
+    error_message = "Merci pour votre inscription !"
+    concert_ids = data.getlist('concert_ids[]')
+    id_spectateur = data["spectateur_id"]
+    for id in concert_ids:
+        print(assiste(id_spectateur, id))
+    return render_template("resume_reservation.html", error_message=error_message, redirect_url=url_for('home'))
+
 
 @app.route("/login/", methods = ("GET", "POST"))
 def login() :

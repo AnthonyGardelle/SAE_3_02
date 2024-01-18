@@ -1,6 +1,48 @@
 {% extends 'base.html' %}
 {% block styles %}
     {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/groupe.css' ) }}">
 {% endblock %}
 {% block content %}
+    {% with photo = groupe.get_photo().url_photos %}
+        {% if photo.startswith("https") %}
+            <img src="{{ photo }}" alt="">
+        {% else %}
+            <img src="{{ url_for('static', filename = photo) }}" alt="">
+        {% endif %}
+    {% endwith %}
+    <section>
+        <div id="header">
+            <h2>{{ groupe.nom_groupe }}</h2>
+            <h2>Genre Musical : {{ groupe.get_genre().nom_genre_musical }}</h2>
+        </div>
+        {% if taille > 1 %}
+        <h4>Les membre du groupe :</h4>
+        {% else %}
+        {% endif %}
+        <ul id="artiste">
+            {% for membre in groupe.get_membres() %}
+                <li><a href="">{{ membre.prenom_artiste }} {{ membre.nom_artiste }} </a></li>
+            {% endfor %}
+        </ul>
+        {% if taille > 1 %}
+        <h4 id="titre_reseaux">Les suivres :</h4>
+        <ul id="reseaux">
+            {% if current_user.is_authenticated %}
+            {% if not groupe.est_favoris(current_user.id_spectateur) %}
+                <li><a href="{{ url_for('suivre', id_group = groupe.id_groupe ) }}"><button>Suivre</button></a></li>
+            {% else %}
+                <li><a href="{{ url_for('unsuivre', id_group = groupe.id_groupe ) }}"><button>Ne plus suivre</button></a></li>
+            {% endif %}
+            {% endif %}
+            {% for reseau in groupe.get_reseaux() %}
+                {% with photo = reseau.nom_reseaux_sociaux %}
+                <li><a href="{{reseau.url_reseaux_sociaux}}"><img src="{{url_for('static', filename = 'images/' + photo + '.png' )}}" alt=""></a></li>
+                {% endwith %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <h4 id="titre_reseaux">Le/La suivre :</h4>
+        {% endif %}
+    </section>
 {% endblock %}

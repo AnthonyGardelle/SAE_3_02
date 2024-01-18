@@ -12,9 +12,18 @@
     display: flex;
     margin-bottom: 2%;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: space-between;
 }
 
 h4 {
     height: min-content;
+}
+
+#concerts {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#concerts > p {
+    flex-basis: 100%;
 }

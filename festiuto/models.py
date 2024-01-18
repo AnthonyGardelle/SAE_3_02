@@ -188,6 +188,9 @@ class Groupe(db.Model):
     
     def get_concerts(self) :
         return SeProduire.query.filter_by(id_groupe=self.id_groupe).all()
+    
+    def get_nb_concerts(self) :
+        return len(self.get_concerts())
 
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
@@ -236,7 +239,7 @@ class Concert(db.Model):
         self.temps_demontage = demontage
         self.id_lieu = id_lieu
         self.id_genre_musical = id_genre_musical
-    
+
     def to_dict(self):
         return {
             'id': self.id_concert,
@@ -249,7 +252,13 @@ class Concert(db.Model):
             'lieu': self.lieu.to_dict() if self.lieu else None,
             'genre': self.genre_musical.to_dict() if self.genre_musical else None,
         }
+    
+    def get_date_fin(self) :
+        debut = self.heure_debut_concert
+        duree = self.duree_concert
+        difference = timedelta(hours=debut.hour, minutes=debut.minute, seconds=debut.second) + timedelta(hours=duree.hour, minutes=duree.minute, seconds=duree.second)
 
+        return (datetime.min + difference).time()
 
 class StyleMusical(db.Model):
     __tablename__ = 'Style_Musical'
@@ -374,6 +383,9 @@ class SeProduire(db.Model):
     def __init__(self, id_groupe, id_concert):
         self.id_groupe = id_groupe
         self.id_concert = id_concert
+
+    def get_concert(self):
+        return Concert.query.get(int(self.id_concert))
         
 class FestivalLieu(db.Model):
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), primary_key=True)

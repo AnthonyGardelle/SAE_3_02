@@ -83,3 +83,7 @@ main {
 h3, h2 {
     margin-bottom: 2%;
 }
+
+footer {
+    position: absolute;
+}

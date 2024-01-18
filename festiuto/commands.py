@@ -51,6 +51,15 @@ def loaddb(dirname):
                             id_fest = row['id_fest']
                             id_lieu = row['id_lieu']
                             print(ajouter_festival_lieu(id_fest, id_lieu))
+                elif nom_table == "type_billet":
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';')
+                        for row in reader:
+                            nom = row['nom_type_billet']
+                            validite = row['duree_validite_type_billet']
+                            prix = row['prix_type_billet']
+                            quantite_dispo = row['quantite_initiale_disponible_type_billet']
+                            print(ajouter_type_billet(nom, validite, prix, quantite_dispo))
                 elif nom_table == "genre_musical" :
                     with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile, delimiter=';')

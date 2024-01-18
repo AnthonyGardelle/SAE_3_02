@@ -1,7 +1,7 @@
 from .app import db, login_manager
 from sqlalchemy import CheckConstraint
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from hashlib import sha256
 
@@ -40,25 +40,40 @@ class Festival(db.Model):
     date_debut_fest = db.Column(db.Date, nullable=False)
     duree_fest = db.Column(db.Integer, nullable=False)
     
-    billets = db.relationship('Billet', backref='festival', lazy=True)
-    
     def __init__(self, id_fest, nom, date_debut, duree):
         self.id_fest = id_fest
         self.nom_fest = nom
         self.date_debut_fest = date_debut
         self.duree_fest = duree
         
+    def to_dict(self):
+        return {
+            'id': self.id_fest,
+            'nom': self.nom_fest,
+            'date_debut': self.date_debut_fest,
+            'duree': self.duree_fest,
+        }
+
 class Spectateur(db.Model, UserMixin) :
     __tablename__ = 'Spectateur'
     id_spectateur = db.Column(db.Integer, primary_key=True)
     nom_spectateur = db.Column(db.String(50), nullable=False)
     prenom_spectateur = db.Column(db.String(50), nullable=False)
     mot_de_passe_spectateur = db.Column(db.String(64), nullable=False)
+    
 
     def __init__(self, nom, prenom, mot_de_passe):
         self.nom_spectateur = nom
         self.prenom_spectateur = prenom
         self.mot_de_passe_spectateur = mot_de_passe
+    
+    def to_dict(self):
+        return {
+            'id': self.id_spectateur,
+            'nom': self.nom_spectateur,
+            'prenom': self.prenom_spectateur,
+            'mot_de_passe': self.mot_de_passe_spectateur,
+        }
 
     def get_id(self):
         return self.id_spectateur
@@ -169,27 +184,62 @@ class StyleMusical(db.Model):
         
 class Billet(db.Model):
     __tablename__ = 'Billet'
-    id_billet = db.Column(db.Integer, primary_key=True)
-    prix_billet = db.Column(db.Float, nullable=False)
-    duree_validite_billet = db.Column(db.Integer, nullable=False)
-    quantite_disponible = db.Column(db.Integer, nullable=False)
+    id_billet = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), nullable=False)
     id_fest = db.Column(db.Integer, db.ForeignKey('Festival.id_fest'), nullable=False)
+    id_type_billet = db.Column(db.String(50), db.ForeignKey('Type_Billet.id_type_billet'), nullable=False)
+    date_debut = db.Column(db.Date, nullable=False)
 
-    spectateur = db.relationship('Spectateur', backref=db.backref('Spectateur', lazy=True))
+    spectateur = db.relationship('Spectateur', backref='billets', lazy=True)
+    festival = db.relationship('Festival', backref='billets', lazy=True)
 
     __table_args__ = (
-        CheckConstraint('prix_billet > 0'),
-        CheckConstraint('duree_validite_billet > 0'),
-        CheckConstraint('quantite_disponible > 0'),
+        CheckConstraint('id_spectateur > 0'),
+        CheckConstraint('id_fest > 0'),
     )
 
-    def __init__(self, prix, duree_validite, quantite, id_spectateur, id_festival):
-        self.prix_billet = prix
-        self.duree_validite_billet = duree_validite
-        self.quantite_disponible = quantite
+    def __init__(self, id_spectateur, id_festival, id_type_billet, date_debut):
         self.id_spectateur = id_spectateur
         self.id_fest = id_festival
+        self.id_type_billet = id_type_billet
+        self.date_debut = date_debut
+        
+    def to_dict(self):
+        return {
+            'id': self.id_billet,
+            'id_spectateur': self.id_spectateur,
+            'id_festival': self.id_fest,
+            'id_type_billet': self.id_type_billet,
+            'festival': self.festival.to_dict() if self.festival else None,
+            'spectateur': self.spectateur.to_dict() if self.spectateur else None,
+            'date_debut': self.date_debut,
+        }
+        
+class TypeBillet(db.Model):
+    __tablename__ = 'Type_Billet'
+    id_type_billet = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nom_type_billet = db.Column(db.String(50))
+    duree_validite_type_billet = db.Column(db.Integer, nullable=False)
+    prix_type_billet = db.Column(db.Float, nullable=False)
+    quantite_initiale_disponible_type_billet = db.Column(db.Integer, nullable=False)
+
+    billets = db.relationship('Billet', backref='type_billet', lazy=True)
+
+    def __init__(self, nom, duree_validite, prix, quantite_initiale_disponible):
+        self.nom_type_billet = nom
+        self.duree_validite_type_billet = duree_validite
+        self.prix_type_billet = prix
+        self.quantite_initiale_disponible_type_billet = quantite_initiale_disponible
+        
+    def to_dict(self):
+        return {
+            'id': self.id_type_billet,
+            'nom': self.nom_type_billet,
+            'duree': self.duree_validite_type_billet,
+            'prix': self.prix_type_billet,
+            'quantite_dispo': self.quantite_initiale_disponible_type_billet,
+            'quantite_reservee': len(self.billets) if self.billets else 0,
+        }
     
 class Organise(db.Model):
     __tablename__ = 'Organise'
@@ -366,6 +416,30 @@ def ajouter_festival_lieu(id_fest, id_lieu):
     except Exception as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+
+def get_types_billets():
+    types_billets = []
+    for type_billet in TypeBillet.query.all():
+        types_billets.append(type_billet.to_dict())
+    return types_billets
+
+def ajouter_type_billet(nom, duree_validite, prix, quantite_initiale_disponible):
+    if not nom:
+        return "Le nom du type de billet ne peut pas être vide"
+    if not duree_validite:
+        return "La durée de validité du type de billet ne peut pas être vide"
+    if not prix:
+        return "Le prix du type de billet ne peut pas être vide"
+    if not quantite_initiale_disponible:
+        return "La quantité initiale disponible du type de billet ne peut pas être vide"
+    try :
+        type_billet = TypeBillet(nom, duree_validite, prix, quantite_initiale_disponible)
+        db.session.add(type_billet)
+        db.session.commit()
+        return f"Le type de billet {nom} a bien été ajouté"
+    except Exception as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
     
 def ajouter_genre_musical(nom_genre_musical):
     if not nom_genre_musical:
@@ -378,9 +452,57 @@ def ajouter_genre_musical(nom_genre_musical):
     except IntegrityError as e:
         db.session.rollback()
         return "Erreur : " + str(e)
-    except Exception as e:
+    
+def get_jours_festival():
+    jours_festival = []
+    debut = Festival.query.first().date_debut_fest
+    duree = Festival.query.first().duree_fest
+    for i in range(duree):
+        jours_festival.append(debut + timedelta(days=i))
+    return jours_festival
+
+def get_duree_fest():
+    return Festival.query.first().duree_fest
+
+def get_spectateur(nom, prebom):
+    return Spectateur.query.filter_by(nom_spectateur=nom, prenom_spectateur=prebom).first()
+
+def add_spectateur(nom, prenom):
+    try :
+        spectateur = Spectateur(nom, prenom)
+        db.session.add(spectateur)
+        db.session.commit()
+        return f"Le spectateur {nom} {prenom} a bien été ajouté"
+    except IntegrityError as e:
         db.session.rollback()
         return "Erreur : " + str(e)
+
+def add_billet(id_spect, id_festival, id_type_billet, date_debut):
+    try :
+        date_debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+        billet_existant = get_billet(id_spect, id_festival, id_type_billet, date_debut)
+        if billet_existant:
+            return False
+        billet = Billet(id_spect, id_festival, id_type_billet, date_debut)
+        db.session.add(billet)
+        db.session.commit()
+        return True
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
+def get_billet(id_spect, id_festival, id_type_billet, date_debut):
+    return Billet.query.filter_by(id_spectateur=id_spect, id_fest=id_festival, id_type_billet=id_type_billet, date_debut=date_debut).first()
+
+def get_activites():
+    activites = []
+    for activite in Activite.query.all():
+        activites.append(activite)
+    return activites
+
+@login_manager.user_loader
+def load_user() :
+    return 1
     
 def ajouter_groupe(nom_groupe, id_genre_musical) :
     if not nom_groupe:
@@ -463,4 +585,3 @@ def get_random_groupes() :
 @login_manager.user_loader
 def load_user(id_spectateur) :
     return Spectateur.query.get(int(id_spectateur))
-

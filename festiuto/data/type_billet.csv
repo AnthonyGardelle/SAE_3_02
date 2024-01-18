@@ -1,0 +1,4 @@
+nom_type_billet;duree_validite_type_billet;prix_type_billet;quantite_initiale_disponible_type_billet
+Essential;1;60.99;100
+Extra;3;90.99;100
+Premium;7;150.99;100

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{url_for('static', filename='css/resume_reservation.css')}}">
+{% endblock %}
+{% block content %}
+    {{ super() }}
+    {% if error_message %}
+    <script>
+        alert("{{ error_message }}");
+        window.location.href = "{{ redirect_url }}";
+    </script>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+{% endblock %}

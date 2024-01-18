@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{url_for('static', filename='css/billeterie.css')}}">
+{% endblock %}
+
+{% block content %}
+    {{ super() }}
+    {% for type_billet in types_billet %}
+        <div class="type_billet">
+            <h2>{{ type_billet.nom }}</h2>
+            <div class="underline"></div>
+            <ul>
+                <li><p>{{ type_billet.duree }}{% if type_billet.duree > 1 %} Jours{%else%} Jour{%endif%}</p></li>
+                <li><p>€ {{ type_billet.prix }}</p></li>
+                <li><p>{{ type_billet.quantite_dispo - type_billet.quantite_reservee }} places restantes</p></li>
+                <div class="bouton" onclick="togglePopup({{type_billet.id}})">Réserver</div>
+            </ul>
+        </div>
+        <div id="popup-overlay-{{type_billet.id}}">
+            <div class="popup-content">
+                <h2>{{type_billet.nom}}</h2>
+                <div class="underline-popup"></div>
+                <form action="{{ url_for('resume_reservation')}}" method="POST" onsubmit="return validateForm('{{type_billet.id}}')">
+                    <p>
+                        <label for="nom">Nom : </label>
+                        <input type="text" name="nom" id="{{type_billet.id}}_nom">
+                    </p>
+                    <p>
+                        <label for="prenom">Prénom : </label>
+                        <input type="text" name="prenom" id="{{type_billet.id}}_prenom">
+                    </p>
+                    <p>
+                        <label for="mail">Adresse Mail : </label>
+                        <input type="text" name="mail" id="{{type_billet.id}}_mail">
+                    </p>
+                    <p>
+                        <label for="date_debut">Selectionner une date de début : </label>
+                        <select name="date_debut" id="{{type_billet.id}}_date_debut">
+                            {% if type_billet.duree == 7%}
+                                <option value="{{ dates[0] }}">{{dates[0]}}</option>
+                            {% endif %}
+                            {% set indices = range(0, dates|length) %}
+                            {% for index in indices %}
+                                {% set date = dates[index] %}
+                                {% if type_billet.duree == 1 %}
+                                    <option value="{{ date }}">{{ date }}</option>
+                                {% elif type_billet.duree + index < duree_fest %}
+                                    <option value="{{ date }}">{{ date }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </p>
+                    <input type="hidden" name="type_billet_id" value="{{ type_billet.id }}">
+                    <button type="submit" class="bouton-reserver">Réserver</button>
+                </form>
+                <button class="bouton-annuler" onclick="togglePopup({{type_billet.id}})">Annuler</button>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{url_for('static', filename='js/billeterie.js')}}"></script>
+{% endblock %}

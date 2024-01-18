@@ -154,3 +154,16 @@ def unsuivre(id_group) :
         return redirect(url_for("groupe", id_group=id_group))
     else :
         return redirect(url_for("login"))
+
+@app.route("/favoris", methods = ("GET",))
+def favoris() :
+    """Fonction de la vue de la page des favoris.
+
+    Returns:
+        flask.reponse: Réponse de la page des favoris.
+    """
+    les_favoris = get_favoris_by_spec(current_user.id_spectateur)
+    return render_template (
+        "favoris.html",
+        favoris = les_favoris
+    )

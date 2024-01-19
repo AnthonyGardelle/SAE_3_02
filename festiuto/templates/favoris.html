@@ -29,8 +29,8 @@
         {% endfor %}
         </div>
         <div id="activites">
-            {% for activite in groupe.get_activites() %}
-                <p>{{ activite.get_activite().nom_activite }} ce déroule de {{ activite.get_activite().heure_debut_activite.strftime("%Hh %Mm %Ss") }} à {{ activite.get_activite().get_date_fin().strftime("%Hh %Mm %Ss") }} le {{ activite.get_activite().date_activite.strftime("%d/%m/%Y") }}</p>
+            {% for activite in favori.get_group().get_activites() %}
+                <p><a href="{{ url_for('sinscrire_activite', id_activite = activite.id_activite ) }}">{{ activite.get_activite().nom_activite }}</a> ce déroule de {{ activite.get_activite().heure_debut_activite.strftime("%Hh %Mm %Ss") }} à {{ activite.get_activite().get_date_fin().strftime("%Hh %Mm %Ss") }} le {{ activite.get_activite().date_activite.strftime("%d/%m/%Y") }}</p>
             {% endfor %}
         </div>
     </div>

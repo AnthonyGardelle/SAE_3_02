@@ -19,11 +19,14 @@
                 <ul>
                     <li><a href="{{ url_for('home') }}">Accueil</a></li>
                     <li><a href="{{ url_for('billeterie') }}">Billeterie</a></li>
-                    <li><a href="{{ url_for('home') }}">Le festival</a></li>
+                    <li><a href="{{ url_for('programme') }}">Le Programme</a></li>
                     <li id="search">
-                        <form method="POST" action="{{ url_for('search') }}" class="form-inline " role="search">
-                            <input class="form-control form-control-sm mr-3" type="search" placeholder="Rechercher un artiste" aria-label="Rechercher" name="searched">
-                            <i class="fas fa-search" aria-hidden="true"></i>
+                        <form method="POST" action="{{ url_for('search') }}" class="d-flex" role="search">
+                            {{ form.hidden_tag() }}
+                            <input class="form-control me-2" type="search"
+                            placeholder="Search" aria-label="Search", name="searched">
+                            <button class="btn btn-outline-success"
+                            type="submit">Search</button>
                         </form>
                     </li>
                     {% if not current_user.is_authenticated %}
@@ -41,10 +44,14 @@
         <footer class="footer py-3 bg-light">
             <ul>
                 <li><a href="">Contactez Nous</a></li>
-                <li><a href="">Acceuil</a></li>
-                <li><a href="">Billeterie</a></li>
-                <li><a href="">Festival</a></li>
-                <li><a href="">Se connecter</a></li>
+                <li><a href="{{ url_for('home') }}">Acceuil</a></li>
+                <li><a href="{{ url_for('billeterie') }}">Billeterie</a></li>
+                <li><a href="{{ url_for('programme') }}">Le Programme</a></li>
+                {% if not current_user.is_authenticated %}
+                    <li><a href="{{ url_for('login') }}">Se connecter</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('profil', id_spectateur = current_user.id_spectateur ) }}">Profil</a></li>
+                {% endif %}
                 <li><p>IUT d'Orléans | Nathan PIGOREAU, Anthony GARDELLE</p></li>
             </ul>
         </footer>

@@ -28,6 +28,11 @@
             <p>{{ concert.get_concert().nom_concert }} ce déroule de {{ concert.get_concert().heure_debut_concert.strftime("%Hh %Mm %Ss") }} à {{ concert.get_concert().get_date_fin().strftime("%Hh %Mm %Ss") }} le {{ concert.get_concert().date_concert.strftime("%d/%m/%Y") }}</p>
         {% endfor %}
         </div>
+        <div id="activites">
+        {% for activite in groupe.get_activites() %}
+            <p><a href="{{ url_for('sinscrire_activite', id_activite = activite.id_activite ) }}">{{ activite.get_activite().nom_activite }}</a> ce déroule de {{ activite.get_activite().heure_debut_activite.strftime("%Hh %Mm %Ss") }} à {{ activite.get_activite().get_date_fin().strftime("%Hh %Mm %Ss") }} le {{ activite.get_activite().date_activite.strftime("%d/%m/%Y") }}</p>
+        {% endfor %}
+        </div>
     </div>
     {% endfor %}
 </div>

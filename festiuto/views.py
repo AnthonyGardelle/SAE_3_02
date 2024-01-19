@@ -25,13 +25,25 @@ def home() :
         random = random
     )
 
-@app.route("/search", methods=("POST",))
-def search():
+@app.route("/search/", methods = ("POST",))
+def search() :
+    """Fonction de recherche."""
     form = SearchForm()
-    content_searched = form.searched.data
-    if content_searched == "":
-        return home()
-    return render_template("search.html", form=form, searched=content_searched, title="Search Page")
+    groupes = get_groupes()
+    if form.validate_on_submit() :
+        form.searched = form.searched.data
+        groupes = Groupe.query.filter(Groupe.nom_groupe.like("%" + form.searched + "%"))
+        return render_template(
+            "search.html",
+            form=form,
+            search=form.searched,
+            groupes=groupes
+        )
+
+@app.context_processor
+def base() :
+    form = SearchForm()
+    return dict(form=form)
 
 @app.route("/billeterie")
 def billeterie():
@@ -179,4 +191,17 @@ def favoris() :
     return render_template (
         "favoris.html",
         favoris = les_favoris
+    )
+
+@app.route("/programme", methods = ("GET",))
+def programme() :
+    """Fonction de la vue de la page du programme.
+
+    Returns:
+        flask.reponse: Réponse de la page du programme.
+    """
+    les_groupes = get_groupes()
+    return render_template (
+        "programme.html",
+        groupes = les_groupes
     )

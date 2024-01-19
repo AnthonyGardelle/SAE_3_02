@@ -795,7 +795,10 @@ def assiste(id_spect, id_concert):
 
 def get_group(id_group) :
     return Groupe.query.filter_by(id_groupe=id_group).first()
-      
+
+def get_groupes() :
+    return Groupe.query.all()
+
 @login_manager.user_loader
 def load_user(id_spectateur) :
     return Spectateur.query.get(int(id_spectateur))

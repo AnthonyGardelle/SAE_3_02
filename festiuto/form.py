@@ -6,13 +6,9 @@ from wtforms.validators import DataRequired
 from .models import Spectateur
 
 class SearchForm(FlaskForm) :
-    """Classe formulaire de recherche.
-
-    Args:
-        FlaskForm (class): Classe formulaire de Flask.
-    """
-    searched = StringField('Searched', validators=[DataRequired()])
-    submit = SubmitField("Submit", validators=[DataRequired()])
+    """Classe de formulaire de recherche."""
+    searched = StringField("Searched", validators=[DataRequired()])
+    submit = SubmitField("Submit")
 
 class LoginForm(FlaskForm) :
     """Classe formulaire de connexion.

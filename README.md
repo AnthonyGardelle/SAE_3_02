@@ -52,6 +52,9 @@ L'IUT d'Orléans, année 2023-2024, travaille sur le projet Festiut'O, une assoc
 2. Les scripts de création de votre BD bien structurés et commentés.
 3. Les fichiers de votre application Web.
 
+## MCD Finale
+![Une image de notre MCD](./img/mcd_finale.png)
+
 ## Évaluations
 
 - Analyse conception implémentation (console): Livrable 1 et 2 + Evaluation écrite (mi-novembre).

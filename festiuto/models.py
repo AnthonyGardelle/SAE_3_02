@@ -432,7 +432,7 @@ class SeLoger(db.Model):
     hebergement = db.relationship('Hebergement', backref=db.backref('Hebergement', lazy=True))
     
     def __init__(self, id_groupe, id_hebergement, date_arrivee, date_depart):
-        self.id_group = id_groupe
+        self.id_groupe = id_groupe
         self.id_hebergement = id_hebergement
         self.date_arrivee = date_arrivee
         self.date_depart = date_depart

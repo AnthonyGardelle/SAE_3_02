@@ -19,12 +19,12 @@ h4 {
     height: min-content;
 }
 
-#concerts {
+#concerts, #activites {
     display: flex;
     flex-wrap: wrap;
 }
 
-#concerts > p {
+#concerts, #activites > p {
     flex-basis: 100%;
 }
 

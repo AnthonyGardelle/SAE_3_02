@@ -40,6 +40,21 @@ def search() :
             groupes=groupes
         )
 
+@app.route("/sinscrire/<int:id_activite>", methods = ("GET",))
+def sinscrire_activite(id_activite) :
+    """Fonction de la vue de la page d'inscription à une activité.
+
+    Args:
+        id_activite (int): Identifiant de l'activité.
+
+    Returns:
+        flask.reponse: Réponse de la page d'inscription à une activité.
+    """
+    return render_template (
+        "sinscrire_activite.html",
+        id_activite = id_activite,
+    )
+
 @app.context_processor
 def base() :
     form = SearchForm()

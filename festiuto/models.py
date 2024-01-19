@@ -178,6 +178,13 @@ class Activite(db.Model):
             'heure_debut': self.heure_debut_activite,
             'duree': self.duree_activite,
         }
+    
+    def get_date_fin(self) :
+        debut = self.heure_debut_activite
+        duree = self.duree_activite
+        difference = timedelta(hours=debut.hour, minutes=debut.minute, seconds=debut.second) + timedelta(hours=duree.hour, minutes=duree.minute, seconds=duree.second)
+
+        return (datetime.min + difference).time()
 
 class Groupe(db.Model):
     __tablename__ = 'Groupe'
@@ -254,6 +261,9 @@ class Groupe(db.Model):
     
     def get_nb_concerts(self) :
         return len(self.get_concerts())
+    
+    def get_activites(self) :
+        return Participer.query.filter_by(id_groupe=self.id_groupe).all()
 
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
@@ -419,6 +429,9 @@ class Participer(db.Model):
     def __init__(self, id_groupe, id_activite):
         self.id_groupe = id_groupe
         self.id_activite = id_activite
+
+    def get_activite(self):
+        return Activite.query.get(int(self.id_activite))
         
 class SeLoger(db.Model):
     __tablename__ = 'Se_Loger'
@@ -542,6 +555,18 @@ class Assiste(db.Model):
     def __init__(self, id_spectateur, id_concert):
         self.id_spectateur = id_spectateur
         self.id_concert = id_concert
+
+class Assiste_Activite(db.Model):
+    __tablename__ = 'Assiste_Activite'
+    id_spectateur = db.Column(db.Integer, db.ForeignKey('Spectateur.id_spectateur'), primary_key=True)
+    id_activite = db.Column(db.Integer, db.ForeignKey('Activite.id_activite'), primary_key=True)
+    
+    spectateur = db.relationship('Spectateur', backref=db.backref('Assiste_Activite', lazy=True))
+    activite = db.relationship('Activite', backref=db.backref('Assiste_Activite', lazy=True))
+    
+    def __init__(self, id_spectateur, id_activite):
+        self.id_spectateur = id_spectateur
+        self.id_activite = id_activite
 
 def ajouter_festival(id_fest, nom, date_debut, duree):
     if not nom:

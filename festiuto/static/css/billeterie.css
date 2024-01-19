@@ -173,3 +173,7 @@ form > p {
 .bouton-reserver:hover {
     background-color: white;
 }
+
+footer {
+    position: absolute;
+}

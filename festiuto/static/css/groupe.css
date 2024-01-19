@@ -48,3 +48,7 @@ a > img {
 #titre_reseaux {
     width: 100%;
 }
+
+footer {
+    position: fixed;
+}

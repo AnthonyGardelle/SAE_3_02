@@ -1,0 +1,33 @@
+#lesgroupes {
+    margin-top: 2%;
+    background-color: #333;
+    margin-right: 4%;
+    border-radius: 30px;
+    margin-bottom: 2%;
+    padding: 2%;
+}
+
+.groupe {
+    display: flex;
+    margin-bottom: 2%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+h4 {
+    height: min-content;
+}
+
+#concerts {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#concerts > p {
+    flex-basis: 100%;
+}
+
+main {
+    margin-top: 2%;
+    margin-left: 2%;
+}

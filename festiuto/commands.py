@@ -164,6 +164,13 @@ def loaddb(dirname):
                             id_groupe = row["id_groupe"]
                             id_activite = row["id_activite"]
                             print(participe(id_groupe, id_activite))
+                elif nom_table == "organise" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:
+                            id_activite = row["id_activite"]
+                            id_lieu = row["id_lieu"]
+                            print(ajouter_organise(id_activite, id_lieu))
                 else:
                     print("\033[91m" + f"Erreur : table {nom_table} non reconnue." + "\033[0m")
             except Exception as e:

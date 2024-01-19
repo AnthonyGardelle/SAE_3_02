@@ -185,6 +185,9 @@ class Activite(db.Model):
         difference = timedelta(hours=debut.hour, minutes=debut.minute, seconds=debut.second) + timedelta(hours=duree.hour, minutes=duree.minute, seconds=duree.second)
 
         return (datetime.min + difference).time()
+    
+    def est_inscrit(self, id_spectateur):
+        return Assiste_Activite.query.filter_by(id_spectateur=id_spectateur, id_activite=self.id_activite).first() is not None
 
 class Groupe(db.Model):
     __tablename__ = 'Groupe'
@@ -997,6 +1000,38 @@ def participe(id_groupe, id_activite):
     
 def get_hebergement_by_id(id_hebergement):
     return Hebergement.query.filter_by(id_hebergement=id_hebergement).first()
+
+def get_activite_by_id(id_activite):
+    return Organise.query.filter_by(id_activite=id_activite).first()
+
+def ajouter_organise(id_activite, id_lieu):
+    try :
+        organise = Organise(id_activite, id_lieu)
+        db.session.add(organise)
+        db.session.commit()
+        return f"L'activité {id_activite} est organisée au lieu {id_lieu}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def inscrire(id_spectateur, id_activite):
+    try :
+        inscrit = Assiste_Activite(id_spectateur, id_activite)
+        db.session.add(inscrit)
+        db.session.commit()
+        return f"Le spectateur {id_spectateur} est inscrit à l'activité {id_activite}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def desinscrire(id_spectateur, id_activite):
+    try :
+        Assiste_Activite.query.filter_by(id_spectateur=id_spectateur, id_activite=id_activite).delete()
+        db.session.commit()
+        return f"Le spectateur {id_spectateur} est désinscrit à l'activité {id_activite}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
 
 @login_manager.user_loader
 def load_user(id_spectateur) :

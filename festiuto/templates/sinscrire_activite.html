@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/sinscrire_activite.css') }}">
+{% endblock %}
+{% block content %}
+<div>
+    <h2>S'inscrire à l'activité {{ activite.activite.nom_activite }}</h2>
+    <ul>
+        <li>Le {{ activite.activite.date_activite.strftime("%d/%m/%Y") }} </li>
+        <li>De {{ activite.activite.heure_debut_activite.strftime("%Hh %Mm %Ss") }} à {{ activite.activite.get_date_fin().strftime("%Hh %Mm %Ss") }}</li>
+    </ul>
+    {% if current_user.is_authenticated %}
+        {% if not activite.activite.est_inscrit(current_user.id_spectateur) %}
+            <a href="{{ url_for('bouton_sinscrire', id_activite = activite.activite.id_activite, id_spectateur = current_user.id_spectateur) }}"><button>S'inscrire</button></a>
+        {% else %}
+            <a href="{{ url_for('bouton_desinscrire', id_activite = activite.activite.id_activite, id_spectateur = current_user.id_spectateur) }}"><button>Se désinscrire</button></a>
+        {% endif %}
+    {% else %}
+        <a href="{{ url_for('login') }}"><button>Se connecter</button></a>
+    {% endif %}
+</div>
+{% endblock %}

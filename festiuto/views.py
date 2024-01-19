@@ -50,10 +50,31 @@ def sinscrire_activite(id_activite) :
     Returns:
         flask.reponse: Réponse de la page d'inscription à une activité.
     """
+    activite = get_activite_by_id(id_activite)
     return render_template (
         "sinscrire_activite.html",
-        id_activite = id_activite,
+        activite = activite,
     )
+
+@app.route("/process_inscription_activite/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
+def bouton_sinscrire(id_activite, id_spectateur) :
+    """Fonction de la vue de la page de confirmation d'inscription à une activité.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation d'inscription à une activité.
+    """
+    inscrire(id_spectateur, id_activite)
+    return redirect(url_for("home"))
+
+@app.route("/process_desinscription_activite/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
+def bouton_desinscrire(id_activite, id_spectateur) :
+    """Fonction de la vue de la page de confirmation de désinscription à une activité.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation de désinscription à une activité.
+    """
+    desinscrire(id_spectateur, id_activite)
+    return redirect(url_for("home"))
 
 @app.context_processor
 def base() :

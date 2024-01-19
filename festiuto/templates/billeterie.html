@@ -16,6 +16,8 @@
                 <li><p>{{ type_billet.quantite_dispo - type_billet.quantite_reservee }} places restantes</p></li>
                 {% if not current_user.is_authenticated %}
                 <div class="bouton" onclick="redirectLogin()">Se connecter</div>
+                {%elif type_billet.quantite_dispo - type_billet.quantite_reservee <= 0%}
+                    <div class="Button">Plus de places disponibles</div>
                 {%else%}
                     <div class="bouton" onclick="togglePopup({{type_billet.id}})">Réserver</div>
                 {%endif%}

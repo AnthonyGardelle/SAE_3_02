@@ -79,6 +79,7 @@ class Spectateur(db.Model, UserMixin) :
     nom_spectateur = db.Column(db.String(50), nullable=False)
     prenom_spectateur = db.Column(db.String(50), nullable=False)
     mot_de_passe_spectateur = db.Column(db.String(64), nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, nom, prenom, mot_de_passe):
         self.nom_spectateur = nom
@@ -128,7 +129,7 @@ class Spectateur(db.Model, UserMixin) :
 
 class Hebergement(db.Model):
     __tablename__ = 'Hebergement'
-    id_hebergement = db.Column(db.Integer, primary_key=True)
+    id_hebergement = db.Column(db.Integer, primary_key=True, autoincrement = True)
     nom_hebergement = db.Column(db.String(50), nullable=False)
     adresse_hebergement = db.Column(db.String(50), nullable=False)
     ville_hebergement = db.Column(db.String(50), nullable=False)
@@ -141,32 +142,77 @@ class Hebergement(db.Model):
         self.ville_hebergement = ville
         self.code_postal_hebergement = code_postal
         self.capacite_hebergement = capacite
+    
+    def to_dict(self):
+        return {
+            'id': self.id_hebergement,
+            'nom': self.nom_hebergement,
+            'adresse': self.adresse_hebergement,
+            'ville': self.ville_hebergement,
+            'code_postal': self.code_postal_hebergement,
+            'capacite': self.capacite_hebergement,
+        }
 
 class Activite(db.Model):
     __tablename__ = 'Activite'
-    id_activite = db.Column(db.Integer, primary_key=True)
+    id_activite = db.Column(db.Integer, primary_key=True, autoincrement = True)
     nom_activite = db.Column(db.String(50), nullable=False)
-    statut = db.Column(db.String(50), nullable=False)
-    date_debut_activite = db.Column(db.Date, nullable=False)
-    duree_activite = db.Column(db.Integer, nullable=False)
+    statut_publique = db.Column(db.Boolean, nullable=False)
+    date_activite = db.Column(db.Date, nullable=False)
+    heure_debut_activite = db.Column(db.Time, nullable=False)
+    duree_activite = db.Column(db.Time, nullable=False)
     
-    def __init__(self, nom, statut, date_debut, duree):
+    def __init__(self, nom, statut, date_debut , heure_debut, duree):
         self.nom_activite = nom
-        self.statut = statut
-        self.date_debut_activite = date_debut
+        self.statut_publique = statut
+        self.date_activite = date_debut
+        self.heure_debut_activite = heure_debut
         self.duree_activite = duree
+
+    def to_dict(self):
+        return {
+            'id': self.id_activite,
+            'nom': self.nom_activite,
+            'statut_publique': self.statut_publique,
+            'date_debut': self.date_activite,
+            'heure_debut': self.heure_debut_activite,
+            'duree': self.duree_activite,
+        }
 
 class Groupe(db.Model):
     __tablename__ = 'Groupe'
     id_groupe = db.Column(db.Integer, primary_key=True)
     nom_groupe = db.Column(db.String(50), nullable=False)
     id_genre_musical = db.Column(db.Integer, db.ForeignKey('Genre_Musical.id_genre_musical'), nullable=False)
+    date_arrivee = db.Column(db.Date, nullable=False)
+    date_depart = db.Column(db.Date, nullable=False)
+    heure_arrivee = db.Column(db.Time, nullable=False)
+    heure_depart = db.Column(db.Time, nullable=False)
     
     genre_musical = db.relationship('GenreMusical', backref=db.backref('Genre_Musical', lazy=True))
     
-    def __init__(self, nom, id_genre_musical):
+    def __init__(self, nom, id_genre_musical, date_arrivee, date_depart, heure_arrivee, heure_depart):
         self.nom_groupe = nom
         self.id_genre_musical = id_genre_musical
+        self.date_arrivee = date_arrivee
+        self.date_depart = date_depart
+        self.heure_arrivee = heure_arrivee
+        self.heure_depart = heure_depart
+
+    def to_dict(self):
+        return {
+            'id': self.id_groupe,
+            'nom': self.nom_groupe,
+            'genre': self.genre_musical.to_dict() if self.genre_musical else None,
+            'date_arrivee': self.date_arrivee,
+            'date_depart': self.date_depart,
+            'heure_arrivee': self.heure_arrivee,
+            'heure_depart': self.heure_depart,
+            'concerts': self.get_concerts(),
+            'nb_membres': len(self.get_membres()),
+            'hebergement': self.get_hebergement().to_dict() if self.get_hebergement() else None,
+            'activites': [participer.activite.to_dict() for participer in Participer.query.filter_by(id_groupe=self.id_groupe).all()],
+        }
 
     def get_photo(self):
         return Photos.query.filter_by(id_group=self.id_groupe).first()
@@ -182,6 +228,24 @@ class Groupe(db.Model):
     
     def est_favoris(self, id_spectateur) :
         return Favoris.query.filter_by(id_group=self.id_groupe, id_spectateur=id_spectateur).first() is not None
+    
+    def get_date_et_heure_arrive(self):
+        return datetime.combine(self.date_arrivee, self.heure_arrivee)
+    
+    def get_date_et_heure_depart(self):
+        return datetime.combine(self.date_depart, self.heure_depart)
+    
+    def get_concerts(self):
+        for se_produire in SeProduire.query.filter_by(id_groupe=self.id_groupe).all():
+            concert = Concert.query.get(se_produire.id_concert)
+            if concert:
+                yield concert.to_dict()
+        return []
+            
+    def get_logement(self):
+        return SeLoger.query.filter_by(id_groupe=self.id_groupe).first()
+    def get_hebergement(self):
+        return Hebergement.query.get(self.get_logement().id_hebergement) if self.get_logement() else None
 
 class Artiste(db.Model):
     __tablename__ = 'Artiste'
@@ -332,7 +396,7 @@ class Organise(db.Model):
 
 class Participer(db.Model):
     __tablename__ = 'Participer'
-    id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), primary_key=True)
+    id_groupe = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), primary_key=True)
     id_activite = db.Column(db.Integer, db.ForeignKey('Activite.id_activite'), primary_key=True)
     
     groupe = db.relationship('Groupe', backref=db.backref('participer_groupe', lazy=True))
@@ -343,8 +407,10 @@ class Participer(db.Model):
         self.id_activite = id_activite
         
 class SeLoger(db.Model):
-    id_group = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'), primary_key=True)
-    id_hebergement = db.Column(db.Integer, db.ForeignKey('Hebergement.id_hebergement'), primary_key=True)
+    __tablename__ = 'Se_Loger'
+    id_se_loger = db.Column(db.Integer, primary_key=True, autoincrement = True)
+    id_groupe = db.Column(db.Integer, db.ForeignKey('Groupe.id_groupe'))
+    id_hebergement = db.Column(db.Integer, db.ForeignKey('Hebergement.id_hebergement'))
     date_arrivee = db.Column(db.Date, nullable=False)
     date_depart = db.Column(db.Date, nullable=False)
     
@@ -352,7 +418,7 @@ class SeLoger(db.Model):
     hebergement = db.relationship('Hebergement', backref=db.backref('Hebergement', lazy=True))
     
     def __init__(self, id_groupe, id_hebergement, date_arrivee, date_depart):
-        self.id_groupe = id_groupe
+        self.id_group = id_groupe
         self.id_hebergement = id_hebergement
         self.date_arrivee = date_arrivee
         self.date_depart = date_depart
@@ -406,6 +472,13 @@ class Photos(db.Model):
         self.url_photos = url
         self.id_group = id_group
         
+    def to_dict(self):
+        return {
+            'id': self.id_photos,
+            'url': self.url_photos,
+            'id_group': self.id_group,
+        }
+        
 class Videos(db.Model):
     __tablename__ = 'Videos'
     id_videos = db.Column(db.Integer, primary_key=True)
@@ -417,6 +490,13 @@ class Videos(db.Model):
     def __init__(self, url, id_group):
         self.url_videos = url
         self.id_group = id_group
+        
+    def to_dict(self):
+        return {
+            'id': self.id_videos,
+            'url': self.url_videos,
+            'id_group': self.id_group,
+        }
 
 class Favoris(db.Model):
     __tablename__ = 'Favoris'
@@ -596,13 +676,25 @@ def get_activites():
 def load_user() :
     return 1
     
-def ajouter_groupe(nom_groupe, id_genre_musical) :
+def ajouter_groupe(nom_groupe, id_genre_musical, date_arrivee, date_depart, heure_arrivee, heure_depart) :
     if not nom_groupe:
         return "Le nom du groupe ne peut pas être vide"
     if not id_genre_musical:
         return "L'id du genre musical ne peut pas être vide"
+    if not date_arrivee:
+        return "La date d'arrivée du groupe ne peut pas être vide"
+    if not date_depart:
+        return "La date de départ du groupe ne peut pas être vide"
+    if not heure_arrivee:
+        return "L'heure d'arrivée du groupe ne peut pas être vide"
+    if not heure_depart:
+        return "L'heure de départ du groupe ne peut pas être vide"
     try :
-        groupe = Groupe(nom_groupe, id_genre_musical)
+        date_arrivee = datetime.strptime(date_arrivee, '%Y-%m-%d').date()
+        date_depart = datetime.strptime(date_depart, '%Y-%m-%d').date()
+        heure_arrivee = datetime.strptime(heure_arrivee, '%H:%M').time()
+        heure_depart = datetime.strptime(heure_depart, '%H:%M').time()
+        groupe = Groupe(nom_groupe, id_genre_musical, date_arrivee, date_depart, heure_arrivee, heure_depart)
         db.session.add(groupe)
         db.session.commit()
         return f"Le groupe {nom_groupe} a bien été ajouté"
@@ -777,7 +869,90 @@ def assiste(id_spect, id_concert):
 
 def get_group(id_group) :
     return Groupe.query.filter_by(id_groupe=id_group).first()
+
+def get_hebergement():
+    return Hebergement.query.all()
       
+def loger(id_group, id_hebergement):
+    try :
+        group = Groupe.query.filter_by(id_groupe=id_group).first()
+        if not group:
+            return "Le groupe n'existe pas"
+        if id_group is None:
+            return "L'id du groupe ne peut pas être vide"
+        groupe = group.to_dict()
+        date_arrivee = groupe["date_arrivee"]
+        date_depart = groupe["date_depart"]
+        se_loger = SeLoger(id_groupe = id_group, id_hebergement= id_hebergement, date_arrivee= date_arrivee ,date_depart= date_depart)
+        db.session.add(se_loger)
+        db.session.commit()
+        hebergement = Hebergement.query.filter_by(id_hebergement=id_hebergement).first()
+        hebergement.capacite_hebergement -= groupe["nb_membres"]
+        return f"Le groupe {id_group} sera logé à l'hébergement {id_hebergement}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def ajouter_hebergement(nom_hebergement, adresse_hebergement, ville_hebergement, code_postal_hebergement, capacite_hebergement):
+    if not nom_hebergement:
+        return "Le nom de l'hébergement ne peut pas être vide"
+    if not adresse_hebergement:
+        return "L'adresse de l'hébergement ne peut pas être vide"
+    if not ville_hebergement:
+        return "La ville de l'hébergement ne peut pas être vide"
+    if not code_postal_hebergement:
+        return "Le code postal de l'hébergement ne peut pas être vide"
+    if not capacite_hebergement:
+        return "La capacité de l'hébergement ne peut pas être vide"
+    try :
+        hebergement = Hebergement(nom_hebergement, adresse_hebergement, ville_hebergement, code_postal_hebergement, capacite_hebergement)
+        db.session.add(hebergement)
+        db.session.commit()
+        return f"L'hébergement {nom_hebergement} a bien été ajouté"
+    except IntegrityError as e:
+        db.session.rollback()
+        return (e.printStackTrace())
+    
+def ajouter_Activite(nom_activite, statut, date_activite, heure_debut_activite, duree_activite):
+    if not nom_activite:
+        return "Le nom de l'activité ne peut pas être vide"
+    if not date_activite:
+        return "La date de l'activité ne peut pas être vide"
+    if not heure_debut_activite:
+        return "L'heure de l'activité ne peut pas être vide"
+    if not duree_activite:
+        return "La durée de l'activité ne peut pas être vide"
+    if not statut:
+        return "Le statut de l'activité ne peut pas être vide"
+    try :
+        if statut == "Ouvert":
+            statut = True
+        else:
+            statut = False
+        date = datetime.strptime(date_activite, '%Y-%m-%d').date()
+        heure = datetime.strptime(heure_debut_activite, '%H:%M').time()
+        duree = datetime.strptime(duree_activite, '%H:%M').time()
+        activite = Activite(nom_activite,statut, date, heure, duree)
+        db.session.add(activite)
+        db.session.commit()
+        return f"L'activité {nom_activite} a bien été ajoutée"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def participe(id_groupe, id_activite):
+    try :
+        participe = Participer(id_groupe, id_activite)
+        db.session.add(participe)
+        db.session.commit()
+        return f"Le groupe {id_groupe} participe à l'activité {id_activite}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+    
+def get_hebergement_by_id(id_hebergement):
+    return Hebergement.query.filter_by(id_hebergement=id_hebergement).first()
+
 @login_manager.user_loader
 def load_user(id_spectateur) :
     return Spectateur.query.get(int(id_spectateur))

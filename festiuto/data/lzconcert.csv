@@ -21,6 +21,3 @@ Concert du Louvre;2024-08-01;20:00;03:00;01:30;01:30;1;8
 Jazz en Plein Air;2024-08-02;18:45;04:00;01:45;01:45;2;7
 Électro Sunset;2024-08-03;21:00;02:30;01:15;01:15;3;4
 Reggae Chill;2024-08-04;20:15;03:15;01:30;01:45;4;9
-
-
-commands.py, data/groupe.csv, data/lzconcert.csv, data/se_produire.csv, models.py, templates/base.html, views.py

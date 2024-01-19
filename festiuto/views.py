@@ -179,7 +179,30 @@ def unsuivre(id_group) :
         return redirect(url_for("groupe", id_group=id_group))
     else :
         return redirect(url_for("login"))
+      
+@app.route("/admin")
+def admin():
+    liste_groupe = []
+    for groupe in Groupe.query.all():
+        grp = groupe.to_dict()
+        liste_groupe.append(grp)
+    hebergements = get_hebergement()
+    list_hebergements = []
+    for hebergement in hebergements:
+        heb = hebergement.to_dict()
+        list_hebergements.append(heb)
+    return render_template("admin.html", groupes = liste_groupe, hebergements = list_hebergements)
 
+@app.route("/process_hebergement", methods=["POST"])
+def process_hebergement():
+    data = request.form
+    print(data)
+    id_hebergement = data["hebergement"]
+    id_groupe = data["groupe.id"]
+    print(loger(id_groupe, id_hebergement))
+    error_message = f"Le groupe {get_group(id_groupe).nom_groupe} a été logé dans l'hébergement {get_hebergement_by_id(id_hebergement).nom_hebergement}"
+    return render_template("resume_reservation.html", error_message=error_message, redirect_url=url_for('admin'))
+  
 @app.route("/favoris", methods = ("GET",))
 def favoris() :
     """Fonction de la vue de la page des favoris.

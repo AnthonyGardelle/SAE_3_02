@@ -72,7 +72,11 @@ def loaddb(dirname):
                         for row in reader:
                             nom_groupe = row["nom_groupe"]
                             id_genre_musical = row["id_genre_musical"]
-                            print(ajouter_groupe(nom_groupe, id_genre_musical))
+                            date_arrivee = row["date_arrivee"]
+                            date_depart = row["date_depart"]
+                            heure_arrivee = row["heure_arrivee"]
+                            heure_depart = row["heure_depart"]
+                            print(ajouter_groupe(nom_groupe, id_genre_musical, date_arrivee, date_depart, heure_arrivee, heure_depart))
                 elif nom_table == "spectateur" :
                     with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile, delimiter=';')
@@ -100,7 +104,7 @@ def loaddb(dirname):
                     with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile, delimiter=';')
                         for row in reader:  
-                            id_group = row["id_group"]
+                            id_group = row["id_groupe"]
                             id_concert = row["id_concert"]
                             print(ajouter_se_produire(id_group, id_concert))
                 elif nom_table == "lzconcert":
@@ -133,6 +137,33 @@ def loaddb(dirname):
                             url_reseaux_sociaux = row["url_reseaux_sociaux"]
                             id_group = row["id_group"]
                             print(ajouter_reseaux_sociaux(nom_reseaux_sociaux, url_reseaux_sociaux, id_group))
+                elif nom_table == "hebergement" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:
+                            nom_hebergement = row["nom_hebergement"]
+                            adresse_hebergement = row["adresse_hebergement"]
+                            ville_hebergement = row["ville_hebergement"]
+                            code_postal_hebergement = row["code_postal_hebergement"]
+                            capacite_hebergement = row["capacite_hebergement"]
+                            print(ajouter_hebergement(nom_hebergement, adresse_hebergement, ville_hebergement, code_postal_hebergement, capacite_hebergement))
+                elif nom_table == "activite" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:
+                            nom_activite = row["nom_activite"]
+                            statut = row["statut_publique"]
+                            date_activite = row["date_activite"]
+                            heure_debut_activite = row["heure_debut_activite"]
+                            duree_activite = row["duree_activite"]
+                            print(ajouter_Activite(nom_activite, statut, date_activite, heure_debut_activite, duree_activite))
+                elif nom_table == "participer" :
+                    with open(chemin_fichier, newline='', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile, delimiter=';') 
+                        for row in reader:
+                            id_groupe = row["id_groupe"]
+                            id_activite = row["id_activite"]
+                            print(participe(id_groupe, id_activite))
                 else:
                     print("\033[91m" + f"Erreur : table {nom_table} non reconnue." + "\033[0m")
             except Exception as e:
@@ -142,3 +173,30 @@ def loaddb(dirname):
                 db.session.commit()
                 print(f"Table {nom_table} importée avec succès.")
     print("Import terminé.")
+    new_admin(['adminP', 'adminN', 'admin'])
+    
+@app.cli.command()
+@click.argument('nom_admin')
+@click.argument('prenom_admin')
+@click.argument('mot_de_passe_admin')
+def new_admin(nom_admin, prenom_admin, mot_de_passe_admin):
+    '''Creates the admin account.'''
+    admin = Spectateur(nom_admin, prenom_admin, mot_de_passe_admin)
+    admin.admin = True
+    db.session.add(admin)
+    db.session.commit()
+    print("Admin créé avec succès.")
+    promote(['1'])
+
+
+@app.cli.command()
+@click.argument('id_spect')
+def promote(id_spect):
+    '''Promotes a user to admin.'''
+    spect = Spectateur.query.get(id_spect)
+    spect.admin = True
+    db.session.commit()
+    print("Utilisateur promu avec succès.")
+
+app.cli.add_command(new_admin)
+app.cli.add_command(promote)

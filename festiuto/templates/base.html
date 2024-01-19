@@ -34,6 +34,9 @@
                     {% else %}
                         <li><a href="{{ url_for('profil', id_spectateur = current_user.id_spectateur ) }}">Profil</a></li>
                     {% endif %}
+                    {% if current_user.is_authenticated and current_user.admin %}
+                        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </header>

@@ -1,0 +1,54 @@
+main {
+    display: flex;
+    margin-top: 10%;
+    margin-left: 2%;
+}
+
+main > img {
+    align-items: center;
+    margin-right: 20%;
+}
+
+main > section {
+    flex-basis: 55%;
+    background-color: #333;
+    border-radius: 30px;
+    padding: 2%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#header {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+section > #artiste {
+    display: flex;
+    flex-basis: 100%;
+    justify-content: space-between;
+}
+
+section > #artiste > li {
+    margin-right: 2%;
+}
+
+a > img {
+    width: 2em;
+    height: auto;
+}
+
+#reseaux {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+}
+
+#titre_reseaux {
+    width: 100%;
+}
+
+footer {
+    position: fixed;
+}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{url_for('static', filename='css/home.css')}}">
+{% endblock %}
+{% block content %}
+    <article>
+        <section id="def">
+            <h2>Qu'est-ce que FESTIUTO ?</h2>
+            <img src="{{ url_for('static', filename = 'images/public.jpg') }}" alt="">
+        </section>
+        <section>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam lorem ex, blandit quis scelerisque id, aliquet quis velit. Quisque commodo suscipit justo sed imperdiet. Phasellus id lacus blandit, eleifend risus a, posuere orci. Pellentesque iaculis nisl sed eros dapibus accumsan. Aenean vel nunc a lacus tempor faucibus non nec tortor. In a imperdiet ante. Phasellus venenatis, dolor et laoreet vulputate, erat ipsum feugiat lectus, eu egestas lacus ipsum nec mi. Morbi vel hendrerit eros. Vivamus vitae sollicitudin purus. Vestibulum non vestibulum tellus. Morbi ac ornare tortor, vel pulvinar diam. Cras porta tellus sed sapien fermentum eleifend. Nullam semper eu ipsum et imperdiet.</p>
+        </section>
+    </article>
+    <div id="carousel-container">
+        {% if random %}
+            <h2>Quelque groupe du festival</h2>
+        {% else %}
+            <h2><a href="{{ url_for('favoris', id_spectateur = current_user.id_spectateur ) }}">Vos groupes favoris</a></h2>
+        {% endif %}
+        <div id="carousel">
+            {% if random %}
+                {% for favori in favoris %}
+                    {% with photo = favori.get_photo().url_photos %}
+                        {% if photo.startswith("https") %}
+                            <div class="carousel-item"><a href="{{ url_for('groupe', id_group = favori.id_groupe ) }}"><img src="{{photo}}" alt=""></a></div>
+                        {% else %}
+                            <div class="carousel-item"><a href="{{ url_for('groupe', id_group = favori.id_groupe ) }}"><img src="{{url_for('static', filename = photo)}}" alt=""></a></div>
+                        {% endif %}
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                {% for favori in favoris %}
+                    {% with photo = favori.get_group().get_photo().url_photos %}
+                        {% if photo.startswith("https") %}
+                            <div class="carousel-item"><a href="{{ url_for('groupe', id_group = favori.get_group().id_groupe ) }}"><img src="{{photo}}" alt=""></a></div>
+                        {% else %}
+                            <div class="carousel-item"><a href="{{ url_for('groupe', id_group = favori.get_group().id_groupe ) }}"><img src="{{url_for('static', filename = photo)}}" alt=""></a></div>
+                        {% endif %}
+                    {% endwith %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div id="carousel-container2">
+            <div id="carousel2">
+                {% for favori in favoris %}
+                    {% if random %}
+                        <div class="carousel-item2"><p>{{ favori.nom_groupe }}</p></div>
+                    {% else %}
+                        <div class="carousel-item2"><p>{{ favori.get_group().nom_groupe }}</p></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div id="lesboutons">
+            <button id="prev-btn" class="carousel-btn" onclick="prevSlide()">&#10094;</button>
+            <button id="next-btn" class="carousel-btn" onclick="nextSlide()">&#10095;</button>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{url_for('static', filename = 'js/home.js')}}"></script>
+{% endblock %}

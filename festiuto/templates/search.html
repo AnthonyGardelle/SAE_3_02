@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block styles %}
+{{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}">
+{% endblock %}
+{% block content %}
+    {% if groupes.count() > 0 %}
+        <h2>Voici les groupes correspondant à : {{ search }}</h2>
+        <div id="lesgroupes">
+            {% for groupe in groupes %}
+                <div class="groupe">
+                    {% with photo = groupe.get_photo().url_photos %}
+                        {% if photo.startswith("https") %}
+                            <a href="{{ url_for('groupe', id_group = groupe.id_groupe ) }}"><img src="{{ photo }}" alt=""></a>
+                        {% else %}
+                            <a href="{{ url_for('groupe', id_group = groupe.id_groupe ) }}"><img src="{{ url_for('static', filename = photo )}}" alt=""></a>
+                        {% endif %}
+                    {% endwith %}
+                    {% if groupe.get_nb_concerts() == 0 %}
+                        <h4>Aucun concert prévu pour le moment {{ '\U0001F622' }}</h4>
+                    {% else %}
+                    {% if groupe.get_nb_membres() > 1 %}
+                        <h4>Où les retrouvez ?</h4>
+                    {% else %}
+                        <h4>Où le/la retrouver ?</h4>
+                    {% endif %}
+                    {% endif %}
+                    <div id="concerts">
+                        {% for concert in groupe.get_concerts() %}
+                            <p>{{ concert.get_concert().nom_concert }} ce déroule de {{ concert.get_concert().heure_debut_concert.strftime("%Hh %Mm %Ss") }} à {{ concert.get_concert().get_date_fin().strftime("%Hh %Mm %Ss") }} le {{ concert.get_concert().date_concert.strftime("%d/%m/%Y") }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <h2>Aucun groupe ne correspond à : {{ search }}</h2>
+    {% endif %}
+{% endblock %}

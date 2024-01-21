@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Festiut’O</title>
+        <link rel="icon" href="{{ url_for('static', filename = 'images/logo.png')}}"/>
+        <link rel="stylesheet" href="{{ url_for('static', filename = 'css/admin.css') }}">
+    </head>
+    <body>
+        {% for groupe in groupes %}
+            <div>
+                <h2>{{ groupe['nom'] }}</h2>
+                <p>Date d'arrivée: {{ groupe.date_arrivee }}</p>
+                <p>Heure d'arrivée: {{ groupe.heure_arrivee }}</p>
+                <p>Nombre de personnes: {{ groupe.nb_membres }}</p>
+                <p>Date de départ: {{ groupe.date_depart }}</p>
+                <p>Heure de départ: {{ groupe.heure_depart }}</p>
+                {% if groupe.hebergement == None %}
+                    <p>Hébergement: Aucun</p>
+                    <div class="bouton" onclick="togglePopup({{groupe.id}})">Ajouter un hébergement</div>
+                {% else %}
+                    <p>Hébergement: {{ groupe.hebergement.nom }}</p>
+                {% endif %}
+                <h3>Concerts du groupe</h3>
+                <ul>
+                    {% for concert in groupe.concerts%}
+                        <li>
+                            <strong>{{ concert.nom }}</strong><br>
+                            Date du concert: {{ concert.date }}<br>
+                            Heure de début: {{ concert.heure_debut }}<br>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <h3>Activités du groupe</h3>
+                <ul>
+                    {% for activite in groupe.activites%}
+                        <li>
+                            <strong>{{ activite.nom }}</strong><br>
+                            Date de l'activité: {{ activite.date_debut }}<br>
+                            Heure de début: {{ activite.heure_debut }}<br>
+                            Duree: {{ activite.duree }}<br>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div id="popup-overlay-{{groupe.id}}">
+                <div class="popup-content">
+                    <h2>{{groupe.nom}}</h2>
+                    <div class="underline-popup"></div>
+                    <form action="{{ url_for('process_hebergement')}}" method="POST" onsubmit="return validateForm('{{ groupe.id}}')">
+                        <p>
+                            <label for="hebergement">Selectionner un hébergement : </label>
+                            <select name="hebergement" id="{{groupe.id}}_hebergement">
+                                {% for hebergement in hebergements %}
+                                    {% if hebergement.capacite > groupe.nb_membres%}
+                                        <option value="{{ hebergement.id }}">{{ hebergement.nom }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </p>
+                        <input type="hidden" name="groupe.id" value="{{ groupe.id }}">
+                        <button type="submit" class="bouton-reserver">Héberger</button>
+                    </form>
+                    <button class="bouton-annuler" onclick="togglePopup({{groupe.id}})">Annuler</button>
+                </div>
+            </div>
+        {% endfor %}
+        <a href="{{ url_for('home') }}">Accueil</a>
+    </body>
+    <script src="{{url_for('static', filename='js/billeterie.js')}}"></script>
+</html>

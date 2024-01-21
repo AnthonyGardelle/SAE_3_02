@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        {% block head %}
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <title>Festiut’O</title>
+            <link rel="icon" href="{{ url_for('static', filename = 'images/logo.png')}}"/>
+            {% block styles %}
+                <link rel="stylesheet" href="{{ url_for('static', filename = 'css/base.css') }}">
+            {% endblock %}
+        {% endblock %}
+    </head>
+    <body>
+        <header>
+            <img src="{{ url_for('static', filename = 'images/logo.png') }}" alt="Le logo du fetival">
+            <h1>FESTIUT'O</h1>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Accueil</a></li>
+                    <li><a href="{{ url_for('billeterie') }}">Billeterie</a></li>
+                    <li><a href="{{ url_for('programme') }}">Le Programme</a></li>
+                    <li id="search">
+                        <form method="POST" action="{{ url_for('search') }}" class="d-flex" role="search">
+                            {{ form.hidden_tag() }}
+                            <input class="form-control me-2" type="search"
+                            placeholder="Search" aria-label="Search", name="searched">
+                            <button class="btn btn-outline-success"
+                            type="submit">Search</button>
+                        </form>
+                    </li>
+                    {% if not current_user.is_authenticated %}
+                        <li><a href="{{ url_for('login') }}">Se connecter</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('profil', id_spectateur = current_user.id_spectateur ) }}">Profil</a></li>
+                    {% endif %}
+                    {% if current_user.is_authenticated and current_user.admin %}
+                        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        <footer class="footer py-3 bg-light">
+            <ul>
+                <li><a href="">Contactez Nous</a></li>
+                <li><a href="{{ url_for('home') }}">Acceuil</a></li>
+                <li><a href="{{ url_for('billeterie') }}">Billeterie</a></li>
+                <li><a href="{{ url_for('programme') }}">Le Programme</a></li>
+                {% if not current_user.is_authenticated %}
+                    <li><a href="{{ url_for('login') }}">Se connecter</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('profil', id_spectateur = current_user.id_spectateur ) }}">Profil</a></li>
+                {% endif %}
+                <li><p>IUT d'Orléans | Nathan PIGOREAU, Anthony GARDELLE</p></li>
+            </ul>
+        </footer>
+        {% block scripts %}
+        {% endblock %}
+    </body>
+</html>

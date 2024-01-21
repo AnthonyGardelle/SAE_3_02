@@ -1,7 +1,28 @@
-from .app import app
-from .models import *
+"""Module de la vue de l'application."""
+
 from flask import render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user
+from .app import app
+from .models import (
+    Groupe,
+    loger,
+    get_groupes,
+    get_group,
+    get_favoris_by_spec,
+    get_activite_by_id,
+    get_random_groupes,
+    get_spect_by_id,
+    get_types_billets,
+    get_jours_festival,
+    get_duree_fest,
+    get_billet,
+    add_billet,
+    get_hebergement,
+    get_hebergement_by_id,
+    inscrire,
+    desinscrire,
+    assiste
+)
 from .form import SearchForm, LoginForm
 
 @app.route('/')
@@ -12,16 +33,14 @@ def home() :
         flask.reponse: Réponse de la page d'accueil.
     """
     if current_user.is_authenticated and len(get_favoris_by_spec(current_user.id_spectateur)) > 0 :
-        favoris = get_favoris_by_spec(current_user.id_spectateur)
+        les_favoris = get_favoris_by_spec(current_user.id_spectateur)
         random = False
     else :
-        favoris = get_random_groupes()
+        les_favoris = get_random_groupes()
         random = True
-    print(favoris)
-    print(random)
     return render_template (
         "home.html",
-        favoris = favoris,
+        favoris = les_favoris,
         random = random
     )
 
@@ -39,6 +58,7 @@ def search() :
             search=form.searched,
             groupes=groupes
         )
+    return redirect(url_for("home"))
 
 @app.route("/sinscrire/<int:id_activite>", methods = ("GET",))
 def sinscrire_activite(id_activite) :
@@ -56,7 +76,7 @@ def sinscrire_activite(id_activite) :
         activite = activite,
     )
 
-@app.route("/process_inscription_activite/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
+@app.route("/process_inscription/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
 def bouton_sinscrire(id_activite, id_spectateur) :
     """Fonction de la vue de la page de confirmation d'inscription à une activité.
 
@@ -66,7 +86,7 @@ def bouton_sinscrire(id_activite, id_spectateur) :
     inscrire(id_spectateur, id_activite)
     return redirect(url_for("home"))
 
-@app.route("/process_desinscription_activite/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
+@app.route("/desinscription/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
 def bouton_desinscrire(id_activite, id_spectateur) :
     """Fonction de la vue de la page de confirmation de désinscription à une activité.
 
@@ -78,23 +98,38 @@ def bouton_desinscrire(id_activite, id_spectateur) :
 
 @app.context_processor
 def base() :
+    """Fonction de la vue pour le formulaire de recherche.
+
+    Returns:
+        flask.reponse: Réponse du formulaire de recherche.
+    """
     form = SearchForm()
-    return dict(form=form)
+    return {"form": form}
 
 @app.route("/billeterie")
-def billeterie():
+def billeterie() :
+    """Fonction de la vue de la page de la billeterie.
+
+    Returns:
+        flask.reponse: Réponse de la page de la billeterie.
+    """
     types_billet = get_types_billets()
     jours_festival = get_jours_festival()
     duree_fest = get_duree_fest()
-    return render_template("billeterie.html", types_billet=types_billet, dates=jours_festival, duree_fest=duree_fest)
+    return render_template("billeterie.html",
+                        types_billet = types_billet,
+                        dates = jours_festival,
+                        duree_fest = duree_fest)
 
 @app.route("/resume_reservation", methods=["POST"])
-def resume_reservation():
+def resume_reservation() :
+    """Fonction de la vue de la page de confirmation de réservation.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation de réservation.
+    """
     data = request.form
     ind_type_billet = int(data["type_billet_id"])
-    nom = data["nom"]
-    prenom = data["prenom"]
-    mail = data["mail"]
     date_debut = data["date_debut"]
 
     spect = get_spect_by_id(current_user.id_spectateur)
@@ -103,23 +138,32 @@ def resume_reservation():
     billet_ajoute = add_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut)
 
     if not billet_ajoute:
-        error_message = "Erreur : Ce billet existe déjà"    
+        error_message = "Erreur : Ce billet existe déjà"
         print("Erreur : Ce billet existe déjà")
-        return render_template("resume_reservation.html", error_message=error_message, redirect_url="/billeterie")
+        return render_template("resume_reservation.html",
+                            error_message = error_message,
+                            redirect_url = "/billeterie")
 
     billet = get_billet(current_user.id_spectateur, 1, ind_type_billet, date_debut).to_dict()
     return render_template("resume_reservation.html", billet=billet, spectateur=spectateur)
 
 @app.route("/process_inscription", methods=["POST"])
-def process_inscription():
+def process_inscription() :
+    """Fonction de la vue de la page de confirmation d'inscription à une activité.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation d'inscription à une activité.
+    """
     data = request.form
     print(data)
     error_message = "Merci pour votre inscription !"
     concert_ids = data.getlist('concert_ids[]')
     id_spectateur = data["spectateur_id"]
-    for id in concert_ids:
-        print(assiste(id_spectateur, id))
-    return render_template("resume_reservation.html", error_message=error_message, redirect_url=url_for('home'))
+    for concert_id in concert_ids:
+        print(assiste(id_spectateur, concert_id))
+    return render_template("resume_reservation.html",
+                        error_message = error_message,
+                        redirect_url = url_for('home'))
 
 
 @app.route("/login/", methods = ("GET", "POST"))
@@ -150,11 +194,11 @@ def groupe(id_group) :
     Returns:
         flask.reponse: Réponse de la page du groupe.
     """
-    groupe = get_group(id_group)
+    legroupe = get_group(id_group)
     taille = len(groupe.get_membres())
     return render_template (
         "groupe.html",
-        groupe = groupe,
+        groupe = legroupe,
         taille = taille
     )
 
@@ -196,9 +240,8 @@ def suivre(id_group) :
     if current_user.is_authenticated :
         current_user.ajouter_favoris(id_group)
         return redirect(url_for("groupe", id_group=id_group))
-    else :
-        return redirect(url_for("login"))
-    
+    return redirect(url_for("login"))
+
 @app.route("/unsuivre/<int:id_group>", methods = ("GET",))
 def unsuivre(id_group) :
     """Fonction de la vue de la page de désuivi d'un groupe.
@@ -213,14 +256,18 @@ def unsuivre(id_group) :
         current_user.enlever_favoris(id_group)
         print("unsuivre")
         return redirect(url_for("groupe", id_group=id_group))
-    else :
-        return redirect(url_for("login"))
-      
+    return redirect(url_for("login"))
+
 @app.route("/admin")
-def admin():
+def admin() :
+    """Fonction de la vue de la page d'administration.
+
+    Returns:
+        flask.reponse: Réponse de la page d'administration.
+    """
     liste_groupe = []
-    for groupe in Groupe.query.all():
-        grp = groupe.to_dict()
+    for ungroupe in Groupe.query.all():
+        grp = ungroupe.to_dict()
         liste_groupe.append(grp)
     hebergements = get_hebergement()
     list_hebergements = []
@@ -230,15 +277,24 @@ def admin():
     return render_template("admin.html", groupes = liste_groupe, hebergements = list_hebergements)
 
 @app.route("/process_hebergement", methods=["POST"])
-def process_hebergement():
+def process_hebergement() :
+    """Fonction pour loger un groupe dans un hébergement.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation de logement.
+    """
     data = request.form
     print(data)
     id_hebergement = data["hebergement"]
     id_groupe = data["groupe.id"]
     print(loger(id_groupe, id_hebergement))
-    error_message = f"Le groupe {get_group(id_groupe).nom_groupe} a été logé dans l'hébergement {get_hebergement_by_id(id_hebergement).nom_hebergement}"
-    return render_template("resume_reservation.html", error_message=error_message, redirect_url=url_for('admin'))
-  
+    nom_groupe = get_group(id_groupe).nom_groupe
+    nom_hebergement = get_hebergement_by_id(id_hebergement).nom_hebergement
+    error_message = f"Le groupe {nom_groupe} a été logé dans l'hébergement {nom_hebergement}"
+    return render_template("resume_reservation.html",
+                        error_message = error_message,
+                        redirect_url = url_for('admin'))
+
 @app.route("/favoris", methods = ("GET",))
 def favoris() :
     """Fonction de la vue de la page des favoris.

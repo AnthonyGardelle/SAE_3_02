@@ -1,3 +1,37 @@
+/* Add your custom styles here */
 body {
     background-color: #333;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-header h1 {
+    color: #333;
+}
+
+.logout-btn {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.logout-btn button {
+    padding: 10px 20px;
+    background-color: #ff6347;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
 }

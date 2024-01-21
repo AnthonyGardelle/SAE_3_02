@@ -247,7 +247,8 @@ class Spectateur(db.Model, UserMixin) :
         if not id_group:
             return "L'id du groupe ne peut pas être vide"
         try :
-            favoris = get_favori(id_group, self.id_spectateur)
+            favoris = Favoris.query.filter_by(id_group=id_group,
+                                            id_spectateur=self.id_spectateur).first()
             db.session.delete(favoris)
             db.session.commit()
             return f"Le groupe {id_group} a été enlevé des favoris du spect {self.id_spectateur}"
@@ -257,6 +258,46 @@ class Spectateur(db.Model, UserMixin) :
         except ValueError as e:
             db.session.rollback()
             return "Erreur : " + str(e)
+
+    def get_favorite_groups(self) :
+        """Fonction de récupération des groupes favoris du spectateur.
+
+        Returns:
+            list: Liste des groupes favoris du spectateur.
+        """
+        return Favoris.query.filter_by(id_spectateur=self.id_spectateur).all()
+
+    def get_activite(self) :
+        """Fonction de récupération des activités du spectateur.
+
+        Returns:
+            list: Liste des activités du spectateur.
+        """
+        return AssisteActivite.query.filter_by(id_spectateur=self.id_spectateur).all()
+
+    def get_concert(self) :
+        """Fonction de récupération des concerts du spectateur.
+
+        Returns:
+            list: Liste des concerts du spectateur.
+        """
+        return Assiste.query.filter_by(id_spectateur=self.id_spectateur).all()
+
+    def get_billet(self) :
+        """Fonction de récupération des billets du spectateur.
+
+        Returns:
+            list: Liste des billets du spectateur.
+        """
+        return Billet.query.filter_by(id_spectateur=self.id_spectateur).all()
+
+    def get_a_un_billet(self) :
+        """Fonction de vérification de l'existence d'un billet du spectateur.
+
+        Returns:
+            bool: Vrai si le spectateur a un billet, faux sinon.
+        """
+        return len(self.get_billet()) > 0
 
 class Hebergement(db.Model) :
     """Classe d'hébergement.
@@ -703,6 +744,18 @@ class Concert(db.Model) :
         difference = diff_debut + diff_duree
         return (datetime.min + difference).time()
 
+    def est_inscrit(self, id_spectateur) :
+        """Fonction de vérification de l'inscription d'un spectateur à un concert.
+
+        Args:
+            id_spectateur (int): Identifiant du spectateur.
+
+        Returns:
+            Assiste: Spectateur inscrit au concert.
+        """
+        return Assiste.query.filter_by(id_spectateur=id_spectateur,
+                                    id_concert = self.id_concert).first() is not None
+
 class StyleMusical(db.Model) :
     """Classe de style musical.
 
@@ -813,6 +866,14 @@ class Billet(db.Model) :
             'date_fin': (self.date_debut + diff) if self.date_debut else None,
         }
 
+    def get_type_billet(self) :
+        """Fonction de récupération du type de billet.
+
+        Returns:
+            TypeBillet: Type de billet.
+        """
+        return TypeBillet.query.get(self.id_type_billet)
+
 class TypeBillet(db.Model) :
     """Classe de type de billet.
 
@@ -867,6 +928,17 @@ class TypeBillet(db.Model) :
             'quantite_dispo': self.quantite_initiale_disponible_type_billet,
             'quantite_reservee': len(self.billets) if self.billets else 0,
         }
+
+    def est_utilisable(self, id_concert) :
+        """Fonction de vérification de l'utilisation du type de billet pour un concert.
+
+        Args:
+            id_concert (int): Identifiant du concert.
+
+        Returns:
+            bool: Vrai si le type de billet est utilisable pour le concert, faux sinon.
+        """
+        return Concert.query.get(id_concert).date_concert <= self.date_fin_utilisation()
 
 class Organise(db.Model) :
     """Classe d'organisation.
@@ -1884,6 +1956,25 @@ def assiste(id_spect, id_concert) :
         db.session.rollback()
         return "Erreur : " + str(e)
 
+def enlever_assiste(id_spect, id_concert) :
+    """Fonction de suppression d'un spectateur à un concert.
+
+    Args:
+        id_spect (int): Identifiant du spectateur.
+        id_concert (int): Identifiant du concert.
+
+    Returns:
+        str: Message de confirmation de la suppression du spectateur au concert.
+    """
+    try :
+        assister = Assiste.query.filter_by(id_spectateur=id_spect, id_concert=id_concert).first()
+        db.session.delete(assister)
+        db.session.commit()
+        return f"Le spectateur {id_spect} n'assistera plus au concert {id_concert}"
+    except IntegrityError as e:
+        db.session.rollback()
+        return "Erreur : " + str(e)
+
 def get_group(id_group) :
     """Fonction de récupération d'un groupe.
 
@@ -2050,6 +2141,17 @@ def get_activite_by_id(id_activite) :
         Activite: Activité.
     """
     return Organise.query.filter_by(id_activite=id_activite).first()
+
+def get_concert_by_id(id_concert) :
+    """Fonction de récupération d'un concert.
+
+    Args:
+        id_concert (int): Identifiant du concert.
+
+    Returns:
+        Concert: Concert.
+    """
+    return Concert.query.filter_by(id_concert=id_concert).first()
 
 def ajouter_organise(id_activite, id_lieu) :
     """Fonction d'ajout d'une activité à un lieu.

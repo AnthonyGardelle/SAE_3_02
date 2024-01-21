@@ -21,7 +21,9 @@ from .models import (
     get_hebergement_by_id,
     inscrire,
     desinscrire,
-    assiste
+    assiste,
+    get_concert_by_id,
+    enlever_assiste
 )
 from .form import SearchForm, LoginForm
 
@@ -75,6 +77,42 @@ def sinscrire_activite(id_activite) :
         "sinscrire_activite.html",
         activite = activite,
     )
+
+@app.route("/sincrire-concert/<int:id_concert>", methods = ("GET",))
+def sinscrire_concert(id_concert) :
+    """Fonction de la vue de la page d'inscription à un concert.
+
+    Args:
+        id_concert (int): Identifiant du concert.
+
+    Returns:
+        flask.reponse: Réponse de la page d'inscription à un concert.
+    """
+    concert = get_concert_by_id(id_concert)
+    return render_template (
+        "sinscrire_concert.html",
+        concert = concert,
+    )
+
+@app.route("/inscription_concert/<int:id_concert>/<int:id_spectateur>", methods = ("GET","POST"))
+def bouton_sinscrire_concert(id_concert, id_spectateur) :
+    """Fonction de la vue de la page de confirmation d'inscription à un concert.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation d'inscription à un concert.
+    """
+    assiste(id_spectateur, id_concert)
+    return redirect(url_for("home"))
+
+@app.route("/desinscription_concert/<int:id_concert>/<int:id_spectateur>", methods = ("GET","POST"))
+def bouton_desinscrire_concert(id_concert, id_spectateur) :
+    """Fonction de la vue de la page de confirmation de désinscription à un concert.
+
+    Returns:
+        flask.reponse: Réponse de la page de confirmation de désinscription à un concert.
+    """
+    enlever_assiste(id_spectateur, id_concert)
+    return redirect(url_for("home"))
 
 @app.route("/process_inscription/<int:id_activite>/<int:id_spectateur>", methods = ("GET","POST"))
 def bouton_sinscrire(id_activite, id_spectateur) :
@@ -195,7 +233,7 @@ def groupe(id_group) :
         flask.reponse: Réponse de la page du groupe.
     """
     legroupe = get_group(id_group)
-    taille = len(groupe.get_membres())
+    taille = len(legroupe.get_membres())
     return render_template (
         "groupe.html",
         groupe = legroupe,
@@ -212,9 +250,10 @@ def profil(id_spectateur) :
     Returns:
         flask.reponse: Réponse de la page du profil.
     """
+    spectateur = get_spect_by_id(id_spectateur)
     return render_template (
         "profil.html",
-        id_spectateur = id_spectateur,
+        spectateur = spectateur,
     )
 
 @app.route("/deconnexion/", methods = ("GET",))

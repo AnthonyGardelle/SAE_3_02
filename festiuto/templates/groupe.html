@@ -37,6 +37,8 @@
             {% else %}
                 <li><a href="{{ url_for('unsuivre', id_group = groupe.id_groupe ) }}"><button>Ne plus suivre</button></a></li>
             {% endif %}
+            {% else %}
+                <li><a href="{{ url_for('login') }}"><button>Connectez-vous pour suivre</button></a></li>
             {% endif %}
             {% for reseau in groupe.get_reseaux() %}
                 {% with photo = reseau.nom_reseaux_sociaux %}

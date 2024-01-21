@@ -1,8 +1,79 @@
 {% block styles %}
-    <link rel="stylesheet" href="{{url_for('static', filename='css/profil.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profil.css') }}">
 {% endblock %}
+
 {% block content %}
-    <a href="{{ url_for('deconnexion') }}"><button>Se deconnecter</button></a>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>{{ spectateur.nom_spectateur }} {{ spectateur.prenom_spectateur }}</h1>
+            {% if spectateur.admin %}
+                <p>Admin</p>
+            {% endif %}
+        </div>
+
+        <div class="profile-body">
+            <div class="profile-body-left">
+                <div class="profile-body-left-header">
+                    <h2>Informations</h2>
+                </div>
+                <div class="profile-body-left-body">
+                    <p><span class="profile-body-left-body-label">Nom :</span> {{ spectateur.nom_spectateur }}</p>
+                    <p><span class="profile-body-left-body-label">Prénom :</span> {{ spectateur.prenom_spectateur }}</p>
+                </div>
+            </div>
+            <div class="profile-body-right">
+                <div class="profile-body-right-header">
+                    <h2>Groupes suivis</h2>
+                </div>
+                <div class="profile-body-right-body">
+                    {% if spectateur.get_favorite_groups() %}
+                        {% for groupe in spectateur.get_favorite_groups() %}
+                            <div class="profile-body-right-body-groupe">
+                                {% if groupe.get_group().get_photo().url_photos.startswith("https") %}
+                                    <a href="{{ url_for('groupe', id_group = groupe.get_group().id_groupe ) }}"><img src="{{ groupe.get_group().get_photo().url_photos }}" alt=""></a>
+                                {% else %}
+                                    <a href="{{ url_for('groupe', id_group = groupe.get_group().id_groupe ) }}"><img src="{{ url_for('static', filename = groupe.get_group().get_photo().url_photos )}}" alt=""></a>
+                                {% endif %}
+                                <p>{{ groupe.get_group().nom_groupe }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>Vous ne suivez aucun groupe</p>
+                    {% endif %}
+                    <h2>Activite suivie</h2>
+                    {% if spectateur.get_activite() %}
+                        {% for activite in spectateur.get_activite() %}
+                            <div class="profile-body-right-body-groupe">
+                                <p>{{ activite.get_activite().nom_activite }} le {{ activite.get_activite().date_activite }} de {{ activite.get_activite().heure_debut_activite.strftime("%Hh %Mm %Ss") }} à {{ activite.get_activite().get_date_fin().strftime("%Hh %Mm %Ss") }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>Vous ne suivez aucune activité</p>
+                    {% endif %}
+                    <h2>Concert suivie</h2>
+                    {% if spectateur.get_concert() %}
+                        {% for concert in spectateur.get_concert() %}
+                            <div class="profile-body-right-body-groupe">
+                                <p>{{ concert.get_concert().nom_concert }} le {{ concert.get_concert().date_concert }} de {{ concert.get_concert().heure_debut_concert.strftime("%Hh %Mm %Ss") }} à {{ concert.get_concert().get_date_fin().strftime("%Hh %Mm %Ss") }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>Vous ne suivez aucun concert</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        <div class="logout-btn">
+            <a href="{{ url_for('deconnexion') }}">
+                <button>Se déconnecter</button>
+            </a>
+            <a href="{{ url_for('home') }}">
+                <button>Retour à l'accueil</button>
+            </a>
+        </div>
+    </div>
 {% endblock %}
+
 {% block scripts %}
+    <!-- Add any scripts if needed -->
 {% endblock %}
